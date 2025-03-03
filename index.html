@@ -31,7 +31,7 @@
             white-space: pre-line;
         }
         .room-name {
-            background-color: #0c3e4e;
+            background-color: #0077b6;
             color: white;
             padding: 10px;
             border-radius: 5px;
@@ -86,7 +86,7 @@
     <div class="room-info" id="room-info"><span class="spinner"></span> Loading...</div>
     <div class="button-container">
         <button class="button">Staff</button>
-        <button class="button">Guest/Visitor</button>
+        <button class="button" id="guest-button">Guest/Visitor</button>
         <button class="button">Student</button>
     </div>
 
@@ -123,6 +123,11 @@
         }
 
         fetchRoomDetails(roomID);
+
+        // Redirect guest/visitor button to guest.html
+        document.getElementById("guest-button").addEventListener("click", () => {
+            window.location.href = "guest.html";
+        });
     </script>
 </body> 
 </html>
