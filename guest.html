@@ -10,80 +10,116 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
             background-color: #e0f7ff;
             text-align: center;
         }
-        .container {
+        h1 {
+            color: #0077b6;
+        }
+        .room-info {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            font-weight: bold;
+            background-color: #0077b6;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .form-container {
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 400px;
-        }
-        input, button {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        button {
-            background: #0096c7;
+        .input-field {
+            width: calc(100% - 10px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .button {
+            padding: 10px;
+            background-color: #0096c7;
             color: white;
             border: none;
+            border-radius: 5px;
+            font-size: 18px;
             cursor: pointer;
+            transition: background 0.3s;
         }
-        button:hover {
-            background: #0077b6;
+        .button:hover {
+            background-color: #005f80;
+        }
+        .file-input {
+            border: none;
+            background: none;
+        }
+        .file-label {
+            font-size: 14px;
+            color: #555;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Guest Registration</h2>
-        <p id="room-name"></p>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="text" id="lastname" placeholder="Last Name" required>
-        <input type="text" id="firstname" placeholder="First Name" required>
-        <input type="text" id="middlename" placeholder="Middle Name (Optional)">
-        <input type="text" id="nameExt" placeholder="Name Extension (Optional)">
-        <input type="file" id="validID" accept="image/*" required>
-        <button id="submit">Submit</button>
+    <h1>Guest Registration</h1>
+    <div class="room-info" id="room-info">Fetching Room Info...</div>
+    <div class="form-container">
+        <input type="email" id="email" class="input-field" placeholder="E-mail" required>
+        <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
+        <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
+        <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
+        <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
+        <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
+        <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
+        <button class="button" id="submitBtn">Enter</button>
     </div>
 
     <script type="module">
-        import { app } from "./firebase-config.js";
+        import { app, db } from "./firebase-config.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        const db = getDatabase();
         const roomName = localStorage.getItem("scannedRoom");
-        document.getElementById("room-name").innerText = roomName ? `Room: ${roomName}` : "Room not found";
+        document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
 
-        document.getElementById("submit").addEventListener("click", async () => {
+        document.getElementById("submitBtn").addEventListener("click", async () => {
             const email = document.getElementById("email").value;
             const lastname = document.getElementById("lastname").value;
             const firstname = document.getElementById("firstname").value;
             const middlename = document.getElementById("middlename").value;
-            const nameExt = document.getElementById("nameExt").value;
-            const validID = document.getElementById("validID").files[0];
+            const nameext = document.getElementById("nameext").value;
+            const file = document.getElementById("validID").files[0];
 
-            if (!email || !lastname || !firstname || !validID) {
-                alert("Please fill in all required fields.");
+            if (!email || !lastname || !firstname || !file) {
+                alert("Please fill in required fields and upload a valid ID.");
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                const idImage = event.target.result;
-                const data = { email, lastname, firstname, middlename, nameExt, idImage, roomName };
-                await push(ref(db, "guest_registrations"), data);
-                alert("Registration successful!");
-            };
-            reader.readAsDataURL(validID);
+            const dbRef = ref(getDatabase(), "guestEntries");
+            push(dbRef, {
+                email,
+                lastname,
+                firstname,
+                middlename,
+                nameext,
+                room: roomName,
+                timestamp: new Date().toISOString()
+            });
+
+            alert("Entry submitted successfully!");
         });
     </script>
 </body>
