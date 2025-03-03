@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QRLog</title>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,16 +59,48 @@
         <button class="button">Student</button>
     </div>
 
-    <script>
-        // Retrieve last scanned room from local storage
-        const scannedRoom = localStorage.getItem("scannedRoom");
-        const roomInfoElement = document.getElementById("room-info");
-        
-        if (scannedRoom) {
-            roomInfoElement.innerText = `Last Scanned Room: ${scannedRoom}`;
-        } else {
-            roomInfoElement.innerText = "No room scanned yet.";
+    <script type="module">
+        // Firebase Configuration
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyC-5MSxxahHtcoVEGlJyr7p-5SjxbmyGzo",
+  authDomain: "qrlog-36d7a.firebaseapp.com",
+  databaseURL: "https://qrlog-36d7a-default-rtdb.firebaseio.com",
+  projectId: "qrlog-36d7a",
+  storageBucket: "qrlog-36d7a.firebasestorage.app",
+  messagingSenderId: "630622697408",
+  appId: "1:630622697408:web:23f1abd83f5aeec7a2fa25",
+  measurementId: "G-TNF6NQ5D2G"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Get Room ID from URL
+        const params = new URLSearchParams(window.location.search);
+        const roomID = params.get("id");
+
+        async function fetchRoomDetails(id) {
+            const roomInfoElement = document.getElementById("room-info");
+            if (!id) {
+                roomInfoElement.innerText = "Invalid QR Code";
+                return;
+            }
+
+            const docRef = doc(db, "rooms", id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const roomData = docSnap.data();
+                roomInfoElement.innerText = `You are in ${roomData.roomName} (Floor: ${roomData.floor})`;
+            } else {
+                roomInfoElement.innerText = "Room not found!";
+            }
         }
+
+        fetchRoomDetails(roomID);
     </script>
 </body>
 </html>
