@@ -108,7 +108,7 @@
                 return;
             }
 
-            const dbRef = ref(getDatabase(), "guestEntries");
+            const dbRef = ref(getDatabase(), "guest");
             push(dbRef, {
                 email,
                 lastname,
@@ -116,7 +116,7 @@
                 middlename,
                 nameext,
                 room: roomName,
-                timestamp: new Date().toISOString()
+                timestamp: getPHTTimestamp()
             });
 
             alert("Entry submitted successfully!");
