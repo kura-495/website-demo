@@ -167,6 +167,7 @@ if (file) {
 
 // Open the uploaded file in a new tab
 viewFileBtn.addEventListener("click", () => {
+    event.preventDefault();
 if (fileBase64) {
     const newTab = window.open();
     newTab.document.write(`<img src="${fileBase64}" width="100%">`);
