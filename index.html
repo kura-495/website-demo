@@ -31,7 +31,7 @@
             white-space: pre-line;
         }
         .floor-info {
-            background-color: #0c3e4e;
+            background-color: #0096c7;
             color: white;
             padding: 10px;
             border-radius: 5px;
@@ -58,11 +58,24 @@
         .button:hover {
             background-color: #005f80;
         }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #0077b6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <h1>QRLog</h1>
-    <div class="room-info" id="room-info">Last Scanned Room: Loading...</div>
+    <div class="room-info" id="room-info"><span class="spinner"></span> Loading...</div>
     <div class="button-container">
         <button class="button">Staff</button>
         <button class="button">Guest/Visitor</button>
@@ -89,7 +102,10 @@
 
             if (docSnap.exists()) {
                 const roomData = docSnap.data();
-                roomInfoElement.innerHTML = `You are in ${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
+                roomInfoElement.innerHTML = `You are in<br>${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
+                
+                // Store room name in local storage
+                localStorage.setItem("scannedRoom", roomData.roomName);
             } else {
                 roomInfoElement.innerText = "Room not found!";
             }
