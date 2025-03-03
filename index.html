@@ -31,10 +31,12 @@
             white-space: pre-line;
         }
         .floor-info {
-            font-size: 22px;
-            color: #d62828;
-            font-weight: bold;
-            margin-top: 10px;
+            background-color: #0096c7;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 5px;
         }
         .button-container {
             display: flex;
@@ -61,7 +63,6 @@
 <body>
     <h1>QRLog</h1>
     <div class="room-info" id="room-info">Last Scanned Room: Loading...</div>
-    <div class="floor-info" id="floor-info"></div>
     <div class="button-container">
         <button class="button">Staff</button>
         <button class="button">Guest/Visitor</button>
@@ -78,7 +79,6 @@
 
         async function fetchRoomDetails(id) {
             const roomInfoElement = document.getElementById("room-info");
-            const floorInfoElement = document.getElementById("floor-info");
             if (!id) {
                 roomInfoElement.innerText = "Invalid QR Code";
                 return;
@@ -89,8 +89,7 @@
 
             if (docSnap.exists()) {
                 const roomData = docSnap.data();
-                roomInfoElement.innerText = `You are in ${roomData.roomName}`;
-                floorInfoElement.innerText = `Floor: ${roomData.floor}`;
+                roomInfoElement.innerHTML = `You are in ${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
             } else {
                 roomInfoElement.innerText = "Room not found!";
             }
