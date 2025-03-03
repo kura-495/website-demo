@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRLog</title>
+    <title>Guest Registration</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script type="module" src="firebase-config.js"></script>
     <style>
         body {
@@ -16,128 +16,124 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #e0f7ff;
             text-align: center;
         }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
         h1 {
             color: #0077b6;
+            font-size: 24px;
         }
-        .room-info {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: #005f80;
+        label {
+            display: block;
+            margin-top: 10px;
             font-weight: bold;
-            white-space: pre-line;
-            max-width: 90%;
-            word-wrap: break-word;
+            text-align: left;
         }
-        .room-name, .floor-info {
-            background-color: #0077b6;
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            background-color: #0096c7;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #005f80;
+        }
+        .room-name {
+            background: #0077b6;
             color: white;
             padding: 10px;
             border-radius: 5px;
-            display: inline-block;
-            margin-top: 5px;
-            max-width: 90%;
-            word-wrap: break-word;
-        }
-        .floor-info {
-            background-color: #0c3e4e;
-        }
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 100%;
-            max-width: 300px;
-        }
-        .button {
-            padding: 15px;
-            background-color: #0096c7;
-            color: white;
-            border: none;
-            border-radius: 8px;
             font-size: 18px;
-            cursor: pointer;
-            transition: background 0.3s;
-            width: 100%;
+            margin-bottom: 15px;
         }
-        .button:hover {
-            background-color: #005f80;
-        }
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #0077b6;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @media (max-width: 600px) {
-            .room-info, .room-name, .floor-info {
-                font-size: 16px;
-                padding: 8px;
-            }
-            .button {
-                font-size: 16px;
-                padding: 12px;
-            }
+        .file-input {
+            border: none;
         }
     </style>
 </head>
 <body>
-    <h1>QRLog</h1>
-    <div class="room-info" id="room-info"><span class="spinner"></span> Loading...</div>
-    <div class="button-container">
-        <button class="button">Staff</button>
-        <button class="button" id="guest-button">Guest/Visitor</button>
-        <button class="button">Student</button>
+    <div class="container">
+        <h1>Guest Registration</h1>
+        <div class="room-name" id="room-name">Loading...</div>
+        <label for="email">E-mail</label>
+        <input type="email" id="email" required>
+
+        <label for="lastname">Last Name</label>
+        <input type="text" id="lastname" required>
+
+        <label for="firstname">First Name</label>
+        <input type="text" id="firstname" required>
+
+        <label for="middlename">Middle Name (Optional)</label>
+        <input type="text" id="middlename">
+
+        <label for="nameExt">Name Extension (Optional)</label>
+        <input type="text" id="nameExt">
+
+        <label for="idPicture">Upload Valid ID</label>
+        <input type="file" id="idPicture" accept="image/*" class="file-input" required>
+
+        <button id="submit">Submit</button>
     </div>
 
     <script type="module">
         import { app, db } from "./firebase-config.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // Get Room ID from URL
-        const params = new URLSearchParams(window.location.search);
-        const roomID = params.get("id");
+        // Fetch room name from localStorage
+        const roomName = localStorage.getItem("scannedRoom") || "Unknown Room";
+        document.getElementById("room-name").innerText = `Room: ${roomName}`;
 
-        async function fetchRoomDetails(id) {
-            const roomInfoElement = document.getElementById("room-info");
-            if (!id) {
-                roomInfoElement.innerText = "Invalid QR Code";
+        document.getElementById("submit").addEventListener("click", async () => {
+            const email = document.getElementById("email").value;
+            const lastname = document.getElementById("lastname").value;
+            const firstname = document.getElementById("firstname").value;
+            const middlename = document.getElementById("middlename").value || "";
+            const nameExt = document.getElementById("nameExt").value || "";
+            const idPicture = document.getElementById("idPicture").files[0];
+            
+            if (!email || !lastname || !firstname || !idPicture) {
+                alert("Please fill in all required fields.");
                 return;
             }
 
-            const docRef = doc(db, "rooms", id);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const roomData = docSnap.data();
-                roomInfoElement.innerHTML = `Logging in<br><br><span class='room-name'>${roomData.roomName}</span><br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
-                
-                // Store room name in local storage
-                localStorage.setItem("scannedRoom", roomData.roomName);
-                
-                // Log localStorage data to console
-                console.log("LocalStorage Data:", localStorage.getItem("scannedRoom"));
-            } else {
-                roomInfoElement.innerText = "Room not found!";
-            }
-        }
-
-        fetchRoomDetails(roomID);
-
-        // Redirect guest/visitor button to guest.html
-        document.getElementById("guest-button").addEventListener("click", () => {
-            window.location.href = "guest.html";
+            const database = getDatabase(app);
+            const guestsRef = ref(database, "guests");
+            
+            push(guestsRef, {
+                email,
+                lastname,
+                firstname,
+                middlename,
+                nameExt,
+                room: roomName,
+                timestamp: new Date().toISOString()
+            }).then(() => {
+                alert("Guest registered successfully!");
+                window.location.href = "index.html";
+            }).catch(error => {
+                console.error("Error saving guest info:", error);
+                alert("Error registering guest.");
+            });
         });
     </script>
-</body> 
+</body>
 </html>
