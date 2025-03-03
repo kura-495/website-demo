@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Registration</title>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #e0f7ff;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background: #0096c7;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0077b6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Guest Registration</h2>
+        <p id="room-name"></p>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="text" id="lastname" placeholder="Last Name" required>
+        <input type="text" id="firstname" placeholder="First Name" required>
+        <input type="text" id="middlename" placeholder="Middle Name (Optional)">
+        <input type="text" id="nameExt" placeholder="Name Extension (Optional)">
+        <input type="file" id="validID" accept="image/*" required>
+        <button id="submit">Submit</button>
+    </div>
+
+    <script type="module">
+        import { app } from "./firebase-config.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const db = getDatabase();
+        const roomName = localStorage.getItem("scannedRoom");
+        document.getElementById("room-name").innerText = roomName ? `Room: ${roomName}` : "Room not found";
+
+        document.getElementById("submit").addEventListener("click", async () => {
+            const email = document.getElementById("email").value;
+            const lastname = document.getElementById("lastname").value;
+            const firstname = document.getElementById("firstname").value;
+            const middlename = document.getElementById("middlename").value;
+            const nameExt = document.getElementById("nameExt").value;
+            const validID = document.getElementById("validID").files[0];
+
+            if (!email || !lastname || !firstname || !validID) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const idImage = event.target.result;
+                const data = { email, lastname, firstname, middlename, nameExt, idImage, roomName };
+                await push(ref(db, "guest_registrations"), data);
+                alert("Registration successful!");
+            };
+            reader.readAsDataURL(validID);
+        });
+    </script>
+</body>
+</html>
