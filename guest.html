@@ -179,9 +179,15 @@
             });
 
             alert("Entry submitted successfully!");
-
-const storedRoom = localStorage.getItem("scannedRoom");
-window.location.href = `index.html?id=${encodeURIComponent(storedRoom)}`;
+             email.value = "";
+    lastname.value = "";
+    firstname.value = "";
+    middlename.value = "";
+    nameext.value = "";
+    timeStatus.value = "Time In";
+    fileInput.value = "";
+    fileBase64 = "";
+    viewFileBtn.style.display = "none";
         });
     </script>
 </body>
