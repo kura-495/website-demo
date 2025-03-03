@@ -95,9 +95,10 @@
         import { app, db } from "./firebase-config.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // Get Room ID from URL
+        // Get Room ID from URL or localStorage
         const params = new URLSearchParams(window.location.search);
-        const roomID = params.get("id") || localStorage.getItem("scannedRoom");
+        const roomID = params.get("id") || localStorage.getItem("scannedRoom"); // Use URL first, fallback to localStorage
+
         const buttonContainer = document.getElementById("button-container");
 
         async function fetchRoomDetails(id) {
@@ -114,7 +115,7 @@
                 const roomData = docSnap.data();
                 roomInfoElement.innerHTML = `Logging in<br><br><span class='room-name'>${roomData.roomName}</span><br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
                 
-                // Store room name in local storage
+                // Store room name in localStorage
                 localStorage.setItem("scannedRoom", roomData.roomName);
                 
                 // Log localStorage data to console
