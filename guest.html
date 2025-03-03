@@ -43,13 +43,12 @@
             flex-direction: column;
             gap: 10px;
         }
-        .input-field {
+        .input-field, .dropdown {
             width: calc(100% - 10px);
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 16px;
-            margin-right: 10px;
         }
         .button {
             padding: 10px;
@@ -94,6 +93,13 @@
         <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
         <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
         <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
+        
+        <label for="timeStatus">Select Time In/Out:</label>
+        <select id="timeStatus" class="dropdown" required>
+            <option value="Time In">Time In</option>
+            <option value="Time Out">Time Out</option>
+        </select>
+
         <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
         <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
         <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
@@ -145,6 +151,7 @@
             const firstname = document.getElementById("firstname").value;
             const middlename = document.getElementById("middlename").value;
             const nameext = document.getElementById("nameext").value;
+            const timeStatus = document.getElementById("timeStatus").value;
             const file = fileInput.files[0];
 
             if (!email || !lastname || !firstname || !file) {
@@ -161,6 +168,7 @@
                 middlename,
                 nameext,
                 room: roomName,
+                timeStatus,  // Store Time In / Time Out selection
                 timestamp: getPHTTimestamp() // Store timestamp in Philippine Time
             });
 
