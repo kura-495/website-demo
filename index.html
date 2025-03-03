@@ -102,7 +102,7 @@
 
             if (docSnap.exists()) {
                 const roomData = docSnap.data();
-                roomInfoElement.innerHTML = `Logging in<br>${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
+                roomInfoElement.innerHTML = `Logging in<br><br>${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
                 
                 // Store room name in local storage
                 localStorage.setItem("scannedRoom", roomData.roomName);
