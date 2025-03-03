@@ -16,119 +16,123 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #e0f7ff;
             text-align: center;
         }
         .container {
             background: white;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 90%;
             max-width: 400px;
         }
-        h2 {
+        h1 {
             color: #0077b6;
-            margin-bottom: 10px;
+            font-size: 24px;
         }
         label {
             display: block;
-            text-align: left;
+            margin-top: 10px;
             font-weight: bold;
-            margin: 10px 0 5px;
+            text-align: left;
         }
         input, button {
             width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
+            margin-top: 5px;
             border-radius: 5px;
+            border: 1px solid #ccc;
             font-size: 16px;
-        }
-        input[type="file"] {
-            padding: 5px;
         }
         button {
             background-color: #0096c7;
             color: white;
-            border: none;
             cursor: pointer;
             transition: background 0.3s;
+            margin-top: 15px;
         }
         button:hover {
             background-color: #005f80;
         }
-        .room-info {
-            background-color: #0077b6;
+        .room-name {
+            background: #0077b6;
             color: white;
             padding: 10px;
             border-radius: 5px;
+            font-size: 18px;
             margin-bottom: 15px;
-            font-weight: bold;
+        }
+        .file-input {
+            border: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Guest Registration</h2>
-        <div class="room-info" id="room-info">Loading room...</div>
-        <label for="email">Email:</label>
+        <h1>Guest Registration</h1>
+        <div class="room-name" id="room-name">Loading...</div>
+        <label for="email">E-mail</label>
         <input type="email" id="email" required>
-        
-        <label for="lastname">Last Name:</label>
+
+        <label for="lastname">Last Name</label>
         <input type="text" id="lastname" required>
-        
-        <label for="firstname">First Name:</label>
+
+        <label for="firstname">First Name</label>
         <input type="text" id="firstname" required>
-        
-        <label for="middlename">Middle Name (Optional):</label>
+
+        <label for="middlename">Middle Name (Optional)</label>
         <input type="text" id="middlename">
-        
-        <label for="extension">Name Extension (Optional):</label>
-        <input type="text" id="extension">
-        
-        <label for="id-picture">Upload Valid ID:</label>
-        <input type="file" id="id-picture" accept="image/*" required>
-        
-        <button id="submit">Enter</button>
+
+        <label for="nameExt">Name Extension (Optional)</label>
+        <input type="text" id="nameExt">
+
+        <label for="idPicture">Upload Valid ID</label>
+        <input type="file" id="idPicture" accept="image/*" class="file-input" required>
+
+        <button id="submit">Submit</button>
     </div>
 
     <script type="module">
         import { app, db } from "./firebase-config.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const roomName = localStorage.getItem("scannedRoom");
-            document.getElementById("room-info").innerText = roomName ? `Room: ${roomName}` : "Room not found";
-        });
+        // Fetch room name from localStorage
+        const roomName = localStorage.getItem("scannedRoom") || "Unknown Room";
+        document.getElementById("room-name").innerText = `Room: ${roomName}`;
 
         document.getElementById("submit").addEventListener("click", async () => {
             const email = document.getElementById("email").value;
             const lastname = document.getElementById("lastname").value;
             const firstname = document.getElementById("firstname").value;
-            const middlename = document.getElementById("middlename").value;
-            const extension = document.getElementById("extension").value;
-            const idPicture = document.getElementById("id-picture").files[0];
-            const roomName = localStorage.getItem("scannedRoom") || "Unknown Room";
-
+            const middlename = document.getElementById("middlename").value || "";
+            const nameExt = document.getElementById("nameExt").value || "";
+            const idPicture = document.getElementById("idPicture").files[0];
+            
             if (!email || !lastname || !firstname || !idPicture) {
-                alert("Please fill in all required fields and upload an ID.");
+                alert("Please fill in all required fields.");
                 return;
             }
 
-            const dbRef = ref(getDatabase(), "guest_log");
-            push(dbRef, {
+            const database = getDatabase(app);
+            const guestsRef = ref(database, "guests");
+            
+            push(guestsRef, {
                 email,
                 lastname,
                 firstname,
                 middlename,
-                extension,
-                roomName,
+                nameExt,
+                room: roomName,
                 timestamp: new Date().toISOString()
+            }).then(() => {
+                alert("Guest registered successfully!");
+                window.location.href = "index.html";
+            }).catch(error => {
+                console.error("Error saving guest info:", error);
+                alert("Error registering guest.");
             });
-
-            alert("Guest details submitted successfully!");
         });
     </script>
 </body>
