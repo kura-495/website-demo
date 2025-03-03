@@ -20,6 +20,12 @@
         h1 {
             color: #0077b6;
         }
+        .room-info {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #005f80;
+            font-weight: bold;
+        }
         .button-container {
             display: flex;
             flex-direction: column;
@@ -44,58 +50,23 @@
 </head>
 <body>
     <h1>QRLog</h1>
+    <div class="room-info" id="room-info">Last Scanned Room: Loading...</div>
     <div class="button-container">
         <button class="button">Staff</button>
         <button class="button">Guest/Visitor</button>
         <button class="button">Student</button>
     </div>
-    <div id="room-info" style="margin-top: 20px; font-size: 18px; color: #0077b6;"></div>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-    apiKey: "AIzaSyC-5MSxxahHtcoVEGlJyr7p-5SjxbmyGzo",
-    authDomain: "qrlog-36d7a.firebaseapp.com",
-    databaseURL: "https://qrlog-36d7a-default-rtdb.firebaseio.com",
-    projectId: "qrlog-36d7a",
-    storageBucket: "qrlog-36d7a.firebasestorage.app",
-    messagingSenderId: "630622697408",
-    appId: "1:630622697408:web:23f1abd83f5aeec7a2fa25",
-    measurementId: "G-TNF6NQ5D2G"
-  };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Extract room ID from URL
-        const params = new URLSearchParams(window.location.search);
-        const roomId = params.get("id");
-
-        async function fetchRoomDetails(id) {
-            if (!id) {
-                document.getElementById("room-info").innerText = "Invalid QR Code";
-                return;
-            }
-
-            const docRef = doc(db, "rooms", id);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const roomData = docSnap.data();
-                
-                // Store room name in local storage
-                localStorage.setItem("scannedRoom", roomData.roomName);
-
-                document.getElementById("room-info").innerText = 
-                    `You are in ${roomData.roomName} (Floor: ${roomData.floor}, Capacity: ${roomData.capacity || 'N/A'})`;
-            } else {
-                document.getElementById("room-info").innerText = "Room not found!";
-            }
+    <script>
+        // Retrieve last scanned room from local storage
+        const scannedRoom = localStorage.getItem("scannedRoom");
+        const roomInfoElement = document.getElementById("room-info");
+        
+        if (scannedRoom) {
+            roomInfoElement.innerText = `Last Scanned Room: ${scannedRoom}`;
+        } else {
+            roomInfoElement.innerText = "No room scanned yet.";
         }
-
-        fetchRoomDetails(roomId);
     </script>
 </body>
 </html>
