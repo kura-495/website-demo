@@ -97,7 +97,7 @@
 
         // Get Room ID from URL
         const params = new URLSearchParams(window.location.search);
-        const roomID = params.get("id");
+        const roomID = params.get("id") || localStorage.getItem("scannedRoom");
         const buttonContainer = document.getElementById("button-container");
 
         async function fetchRoomDetails(id) {
