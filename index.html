@@ -31,7 +31,7 @@
             white-space: pre-line;
         }
         .floor-info {
-            background-color: #0096c7;
+            background-color: #0c3e4e;
             color: white;
             padding: 10px;
             border-radius: 5px;
@@ -102,7 +102,7 @@
 
             if (docSnap.exists()) {
                 const roomData = docSnap.data();
-                roomInfoElement.innerHTML = `You are in<br>${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
+                roomInfoElement.innerHTML = `Logging in<br>${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
                 
                 // Store room name in local storage
                 localStorage.setItem("scannedRoom", roomData.roomName);
