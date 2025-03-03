@@ -6,7 +6,6 @@
     <title>Guest Registration</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
     <script type="module" src="firebase-config.js"></script>
     <style>
         body {
@@ -110,46 +109,48 @@
     <script type="module">
         import { app, db } from "./firebase-config.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
 
-        const storage = getStorage();
+        // Get the room name from localStorage
         const roomName = localStorage.getItem("scannedRoom");
         document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
 
+        // Function to get the timestamp in Philippine Time (PHT)
         function getPHTTimestamp() {
             const now = new Date();
-            const phtOffset = 8 * 60;
+            const phtOffset = 8 * 60; // UTC+8
             const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
             return phtTime.toISOString().replace("Z", "+08:00");
         }
 
+        // Handle file input and "View File" button visibility
         const fileInput = document.getElementById("validID");
         const viewFileBtn = document.getElementById("viewFileBtn");
-        let fileURL = "";
+        let fileBase64 = "";
 
         fileInput.addEventListener("change", () => {
             const file = fileInput.files[0];
             if (file) {
-                fileURL = URL.createObjectURL(file);
-                viewFileBtn.style.display = "block";
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    fileBase64 = event.target.result; // Store Base64 string
+                    viewFileBtn.style.display = "block"; // Show button when file is selected
+                };
+                reader.readAsDataURL(file);
             } else {
-                viewFileBtn.style.display = "none";
+                viewFileBtn.style.display = "none"; // Hide button if no file is selected
+                fileBase64 = "";
             }
         });
 
+        // Open the uploaded file in a new tab
         viewFileBtn.addEventListener("click", () => {
-            if (fileURL) {
-                window.open(fileURL, "_blank");
+            if (fileBase64) {
+                const newTab = window.open();
+                newTab.document.write(`<img src="${fileBase64}" width="100%">`);
             }
         });
 
-        async function uploadFile(file) {
-            const filePath = `guest_ids/${Date.now()}_${file.name}`;
-            const fileRef = storageRef(storage, filePath);
-            await uploadBytes(fileRef, file);
-            return await getDownloadURL(fileRef);
-        }
-
+        // Submit event listener
         document.getElementById("submitBtn").addEventListener("click", async () => {
             const email = document.getElementById("email").value;
             const lastname = document.getElementById("lastname").value;
@@ -157,32 +158,27 @@
             const middlename = document.getElementById("middlename").value;
             const nameext = document.getElementById("nameext").value;
             const timeStatus = document.getElementById("timeStatus").value;
-            const file = fileInput.files[0];
 
-            if (!email || !lastname || !firstname || !file) {
+            if (!email || !lastname || !firstname || !fileBase64) {
                 alert("Please fill in required fields and upload a valid ID.");
                 return;
             }
 
-            try {
-                const fileDownloadURL = await uploadFile(file);
-                const dbRef = ref(getDatabase(), "guest");
-                push(dbRef, {
-                    email,
-                    lastname,
-                    firstname,
-                    middlename,
-                    nameext,
-                    room: roomName,
-                    timeStatus,
-                    validID: fileDownloadURL,  // Store file URL
-                    timestamp: getPHTTimestamp()
-                });
+            // Get database reference and push data
+            const dbRef = ref(getDatabase(), "guest");
+            push(dbRef, {
+                email,
+                lastname,
+                firstname,
+                middlename,
+                nameext,
+                room: roomName,
+                timeStatus,  // Store Time In / Time Out selection
+                validID: fileBase64, // Store Base64 file
+                timestamp: getPHTTimestamp() // Store timestamp in Philippine Time
+            });
 
-                alert("Entry submitted successfully!");
-            } catch (error) {
-                alert("Error uploading file: " + error.message);
-            }
+            alert("Entry submitted successfully!");
         });
     </script>
 </body>
