@@ -97,7 +97,7 @@
 
         // Get Room ID from URL or localStorage
         const params = new URLSearchParams(window.location.search);
-        const roomID = params.get("id") || localStorage.getItem("scannedRoom"); // Use URL first, fallback to localStorage
+        const roomID = params.get("id"); // Use URL first, fallback to localStorage
 
         const buttonContainer = document.getElementById("button-container");
 
