@@ -27,6 +27,7 @@
             margin-bottom: 20px;
             color: #005f80;
             font-weight: bold;
+            white-space: pre-line;
         }
         .button-container {
             display: flex;
@@ -65,15 +66,13 @@
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
-  apiKey: "AIzaSyC-5MSxxahHtcoVEGlJyr7p-5SjxbmyGzo",
-  authDomain: "qrlog-36d7a.firebaseapp.com",
-  databaseURL: "https://qrlog-36d7a-default-rtdb.firebaseio.com",
-  projectId: "qrlog-36d7a",
-  storageBucket: "qrlog-36d7a.firebasestorage.app",
-  messagingSenderId: "630622697408",
-  appId: "1:630622697408:web:23f1abd83f5aeec7a2fa25",
-  measurementId: "G-TNF6NQ5D2G"
-};
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -94,7 +93,7 @@
 
             if (docSnap.exists()) {
                 const roomData = docSnap.data();
-                roomInfoElement.innerText = `You are in ${roomData.roomName} (Floor: ${roomData.floor})`;
+                roomInfoElement.innerText = `You are in ${roomData.roomName}\nFloor: ${roomData.floor}`;
             } else {
                 roomInfoElement.innerText = "Room not found!";
             }
