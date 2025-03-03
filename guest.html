@@ -179,7 +179,9 @@
             });
 
             alert("Entry submitted successfully!");
-             window.location.href = "index.html";
+
+const storedRoom = localStorage.getItem("scannedRoom");
+window.location.href = `index.html?id=${encodeURIComponent(storedRoom)}`;
         });
     </script>
 </body>
