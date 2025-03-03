@@ -6,6 +6,7 @@
     <title>Guest Registration</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
     <script type="module" src="firebase-config.js"></script>
     <style>
         body {
@@ -109,20 +110,19 @@
     <script type="module">
         import { app, db } from "./firebase-config.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
 
-        // Get the room name from localStorage
+        const storage = getStorage();
         const roomName = localStorage.getItem("scannedRoom");
         document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
 
-        // Function to get the timestamp in Philippine Time (PHT)
         function getPHTTimestamp() {
             const now = new Date();
-            const phtOffset = 8 * 60; // UTC+8
+            const phtOffset = 8 * 60;
             const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
             return phtTime.toISOString().replace("Z", "+08:00");
         }
 
-        // Handle file input and "View File" button visibility
         const fileInput = document.getElementById("validID");
         const viewFileBtn = document.getElementById("viewFileBtn");
         let fileURL = "";
@@ -131,20 +131,25 @@
             const file = fileInput.files[0];
             if (file) {
                 fileURL = URL.createObjectURL(file);
-                viewFileBtn.style.display = "block"; // Show button when file is selected
+                viewFileBtn.style.display = "block";
             } else {
-                viewFileBtn.style.display = "none"; // Hide button if no file is selected
+                viewFileBtn.style.display = "none";
             }
         });
 
-        // Open the uploaded file in a new tab
         viewFileBtn.addEventListener("click", () => {
             if (fileURL) {
                 window.open(fileURL, "_blank");
             }
         });
 
-        // Submit event listener
+        async function uploadFile(file) {
+            const filePath = `guest_ids/${Date.now()}_${file.name}`;
+            const fileRef = storageRef(storage, filePath);
+            await uploadBytes(fileRef, file);
+            return await getDownloadURL(fileRef);
+        }
+
         document.getElementById("submitBtn").addEventListener("click", async () => {
             const email = document.getElementById("email").value;
             const lastname = document.getElementById("lastname").value;
@@ -159,20 +164,25 @@
                 return;
             }
 
-            // Get database reference and push data
-            const dbRef = ref(getDatabase(), "guest");
-            push(dbRef, {
-                email,
-                lastname,
-                firstname,
-                middlename,
-                nameext,
-                room: roomName,
-                timeStatus,  // Store Time In / Time Out selection
-                timestamp: getPHTTimestamp() // Store timestamp in Philippine Time
-            });
+            try {
+                const fileDownloadURL = await uploadFile(file);
+                const dbRef = ref(getDatabase(), "guest");
+                push(dbRef, {
+                    email,
+                    lastname,
+                    firstname,
+                    middlename,
+                    nameext,
+                    room: roomName,
+                    timeStatus,
+                    validID: fileDownloadURL,  // Store file URL
+                    timestamp: getPHTTimestamp()
+                });
 
-            alert("Entry submitted successfully!");
+                alert("Entry submitted successfully!");
+            } catch (error) {
+                alert("Error uploading file: " + error.message);
+            }
         });
     </script>
 </body>
