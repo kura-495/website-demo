@@ -84,105 +84,103 @@
         }
     </style>
 </head>
+
 <body>
-    <h1>Guest Registration</h1>
-    <div class="room-info" id="room-info">Fetching Room Info...</div>
-    <div class="form-container">
-        <form id="guestForm">
-            <input type="email" id="email" class="input-field" placeholder="E-mail" required>
-            <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
-            <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
-            <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
-            <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
-            
-            <label for="timeStatus">Select Time In/Out:</label>
-            <select id="timeStatus" class="dropdown" required>
-                <option value="Time In">Time In</option>
-                <option value="Time Out">Time Out</option>
-            </select>
+<h1>Guest Registration</h1>
+<div class="room-info" id="room-info">Fetching Room Info...</div>
+<div class="form-container">
+<input type="email" id="email" class="input-field" placeholder="E-mail" required>
+<input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
+<input type="text" id="firstname" class="input-field" placeholder="First Name" required>
+<input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
+<input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
 
-            <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
-            <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-            <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
-            <button class="button" id="submitBtn">Enter</button>
-        </form>
-    </div>
+<label for="timeStatus">Select Time In/Out:</label>
+<select id="timeStatus" class="dropdown" required>
+<option value="Time In">Time In</option>
+<option value="Time Out">Time Out</option>
+</select>
 
-    <script type="module">
-        import { app, db } from "./firebase-config.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+<label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
+<input type="file" id="validID" class="input-field file-input" accept="image/*" required>
+<button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
+<button class="button" id="submitBtn">Enter</button>
+</div>
 
-        const roomName = localStorage.getItem("scannedRoom");
-        document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
+<script type="module">
+import { app, db } from "./firebase-config.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        function getPHTTimestamp() {
-            const now = new Date();
-            const phtOffset = 8 * 60;
-            const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
-            return phtTime.toISOString().replace("Z", "+08:00");
-        }
+// Get the room name from localStorage
+const roomName = localStorage.getItem("scannedRoom");
+document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
 
-        const fileInput = document.getElementById("validID");
-        const viewFileBtn = document.getElementById("viewFileBtn");
-        let fileBase64 = "";
+// Function to get the timestamp in Philippine Time (PHT)
+function getPHTTimestamp() {
+const now = new Date();
+const phtOffset = 8 * 60; // UTC+8
+const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
+return phtTime.toISOString().replace("Z", "+08:00");
+}
 
-        fileInput.addEventListener("change", () => {
-            const file = fileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    fileBase64 = event.target.result;
-                    viewFileBtn.style.display = "block";
-                };
-                reader.readAsDataURL(file);
-            } else {
-                viewFileBtn.style.display = "none";
-                fileBase64 = "";
-            }
-        });
+// Handle file input and "View File" button visibility
+const fileInput = document.getElementById("validID");
+const viewFileBtn = document.getElementById("viewFileBtn");
+let fileBase64 = "";
 
-        viewFileBtn.addEventListener("click", () => {
-            if (fileBase64) {
-                const newTab = window.open();
-                newTab.document.write(`<img src="${fileBase64}" width="100%">`);
-            }
-        });
+fileInput.addEventListener("change", () => {
+const file = fileInput.files[0];
+if (file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        fileBase64 = event.target.result; // Store Base64 string
+        viewFileBtn.style.display = "block"; // Show button when file is selected
+    };
+    reader.readAsDataURL(file);
+} else {
+    viewFileBtn.style.display = "none"; // Hide button if no file is selected
+    fileBase64 = "";
+}
+});
 
-        document.getElementById("guestForm").addEventListener("submit", async (event) => {
-            event.preventDefault();
+// Open the uploaded file in a new tab
+viewFileBtn.addEventListener("click", () => {
+if (fileBase64) {
+    const newTab = window.open();
+    newTab.document.write(`<img src="${fileBase64}" width="100%">`);
+}
+});
 
-            const email = document.getElementById("email").value.trim();
-            const lastname = document.getElementById("lastname").value.trim();
-            const firstname = document.getElementById("firstname").value.trim();
-            const middlename = document.getElementById("middlename").value.trim();
-            const nameext = document.getElementById("nameext").value.trim();
-            const timeStatus = document.getElementById("timeStatus").value;
+// Submit event listener
+document.getElementById("submitBtn").addEventListener("click", async () => {
+const email = document.getElementById("email").value;
+const lastname = document.getElementById("lastname").value;
+const firstname = document.getElementById("firstname").value;
+const middlename = document.getElementById("middlename").value;
+const nameext = document.getElementById("nameext").value;
+const timeStatus = document.getElementById("timeStatus").value;
 
-            if (!email || !lastname || !firstname || !fileBase64) {
-                alert("Please fill in required fields and upload a valid ID.");
-                return;
-            }
+if (!email || !lastname || !firstname || !fileBase64) {
+    alert("Please fill in required fields and upload a valid ID.");
+    return;
+}
 
-            const dbRef = ref(getDatabase(), "guest");
-            await push(dbRef, {
-                email,
-                lastname,
-                firstname,
-                middlename,
-                nameext,
-                room: roomName,
-                timeStatus,
-                validID: fileBase64,
-                timestamp: getPHTTimestamp()
-            });
+// Get database reference and push data
+const dbRef = ref(getDatabase(), "guest");
+push(dbRef, {
+    email,
+    lastname,
+    firstname,
+    middlename,
+    nameext,
+    room: roomName,
+    timeStatus,  // Store Time In / Time Out selection
+    validID: fileBase64, // Store Base64 file
+    timestamp: getPHTTimestamp() // Store timestamp in Philippine Time
+});
 
-            alert("Entry submitted successfully!");
-
-            // Clear form after submission
-            document.getElementById("guestForm").reset();
-            fileBase64 = "";
-            viewFileBtn.style.display = "none";
-        });
-    </script>
+alert("Entry submitted successfully!");
+});
+</script>
 </body>
 </html>
