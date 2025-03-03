@@ -87,7 +87,7 @@
 <body>
     <h1>Guest Registration</h1>
     <div class="room-info" id="room-info">Fetching Room Info...</div>
-    < <div class="form-container">
+    <div class="form-container">
         <form id="guestForm">
             <input type="email" id="email" class="input-field" placeholder="E-mail" required>
             <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
@@ -103,8 +103,8 @@
 
             <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
             <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-            <button type="button" class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
-            <button type="submit" class="button" id="submitBtn">Enter</button>
+            <button type="button" class="button view-file-btn" id="viewFileBtn" style="display: none;">View Uploaded File</button>
+            <button type="submit" class="button">Enter</button>
         </form>
     </div>
 
@@ -112,7 +112,7 @@
         import { app, db } from "./firebase-config.js";
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        // Get the room name from localStorage
+        // Get room name from localStorage
         const roomName = localStorage.getItem("scannedRoom");
         document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
 
@@ -152,13 +152,15 @@
             }
         });
 
-        // Submit event listener
-        document.getElementById("submitBtn").addEventListener("click", async () => {
-            const email = document.getElementById("email").value;
-            const lastname = document.getElementById("lastname").value;
-            const firstname = document.getElementById("firstname").value;
-            const middlename = document.getElementById("middlename").value;
-            const nameext = document.getElementById("nameext").value;
+        // Handle form submission
+        document.getElementById("guestForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value.trim();
+            const lastname = document.getElementById("lastname").value.trim();
+            const firstname = document.getElementById("firstname").value.trim();
+            const middlename = document.getElementById("middlename").value.trim();
+            const nameext = document.getElementById("nameext").value.trim();
             const timeStatus = document.getElementById("timeStatus").value;
 
             if (!email || !lastname || !firstname || !fileBase64) {
@@ -166,24 +168,26 @@
                 return;
             }
 
-            // Get database reference and push data
+            // Push data to Firebase
             const dbRef = ref(getDatabase(), "guest");
-            push(dbRef, {
+            await push(dbRef, {
                 email,
                 lastname,
                 firstname,
                 middlename,
                 nameext,
                 room: roomName,
-                timeStatus,  // Store Time In / Time Out selection
-                validID: fileBase64, // Store Base64 file
-                timestamp: getPHTTimestamp() // Store timestamp in Philippine Time
+                timeStatus,
+                validID: fileBase64,
+                timestamp: getPHTTimestamp()
             });
 
             alert("Entry submitted successfully!");
+
+            // Clear form after submission
             document.getElementById("guestForm").reset();
             fileBase64 = "";
-            viewFileBtn.style.display = "none";
+            viewFileBtn.style.display = "none"; // Hide View File button
         });
     </script>
 </body>
