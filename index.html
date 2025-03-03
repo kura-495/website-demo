@@ -23,20 +23,18 @@
         h1 {
             color: #0077b6;
         }
+        .room-container {
+            background-color: #0096c7;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 10px;
+        }
         .room-info {
             font-size: 18px;
-            margin-bottom: 20px;
-            color: #005f80;
             font-weight: bold;
             white-space: pre-line;
-        }
-        .floor-info {
-            background-color: #0c3e4e;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 5px;
         }
         .button-container {
             display: flex;
@@ -75,7 +73,7 @@
 </head>
 <body>
     <h1>QRLog</h1>
-    <div class="room-info" id="room-info"><span class="spinner"></span> Loading...</div>
+    <div class="room-container" id="room-info"><span class="spinner"></span> Loading...</div>
     <div class="button-container">
         <button class="button">Staff</button>
         <button class="button">Guest/Visitor</button>
@@ -102,7 +100,7 @@
 
             if (docSnap.exists()) {
                 const roomData = docSnap.data();
-                roomInfoElement.innerHTML = `Logging in<br><br>${roomData.roomName}<br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
+                roomInfoElement.innerHTML = `You are in<br>${roomData.roomName}<br>Floor: ${roomData.floor}`;
                 
                 // Store room name in local storage
                 localStorage.setItem("scannedRoom", roomData.roomName);
