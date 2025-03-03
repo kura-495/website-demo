@@ -44,7 +44,7 @@
             gap: 10px;
         }
         .input-field, .dropdown {
-            width: calc(100%);
+            width: calc(100% - 10px);
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -89,22 +89,24 @@
 <h1>Guest Registration</h1>
 <div class="room-info" id="room-info">Fetching Room Info...</div>
 <div class="form-container">
-<input type="email" id="email" class="input-field" placeholder="E-mail" required>
-<input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
-<input type="text" id="firstname" class="input-field" placeholder="First Name" required>
-<input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
-<input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
+<form id="guestForm">
+            <input type="email" id="email" class="input-field" placeholder="E-mail" required>
+            <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
+            <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
+            <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
+            <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
+            
+            <label for="timeStatus">Select Time In/Out:</label>
+            <select id="timeStatus" class="dropdown" required>
+                <option value="Time In">Time In</option>
+                <option value="Time Out">Time Out</option>
+            </select>
 
-<label for="timeStatus">Select Time In/Out:</label>
-<select id="timeStatus" class="dropdown" required>
-<option value="Time In">Time In</option>
-<option value="Time Out">Time Out</option>
-</select>
-
-<label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
-<input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-<button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
-<button class="button" id="submitBtn">Enter</button>
+            <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
+            <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
+            <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
+            <button class="button" id="submitBtn">Enter</button>
+        </form>
 </div>
 
 <script type="module">
@@ -180,6 +182,11 @@ push(dbRef, {
 });
 
 alert("Entry submitted successfully!");
+
+            // Clear form after submission
+            document.getElementById("guestForm").reset();
+            fileBase64 = "";
+            viewFileBtn.style.display = "none";
 });
 </script>
 </body>
