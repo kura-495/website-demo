@@ -133,11 +133,9 @@ input:focus, select:focus {
 import { app, db } from "./firebase-config.js";
 import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// Get the room name from localStorage
 const roomName = localStorage.getItem("scannedRoom");
 document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
 
-// Function to get the timestamp in Philippine Time (PHT)
 function getPHTTimestamp() {
 const now = new Date();
 const phtOffset = 8 * 60; // UTC+8
@@ -145,7 +143,6 @@ const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
 return phtTime.toISOString().replace("Z", "+08:00");
 }
 
-// Handle file input and "View File" button visibility
 const fileInput = document.getElementById("validID");
 const viewFileBtn = document.getElementById("viewFileBtn");
 let fileBase64 = "";
@@ -155,17 +152,16 @@ const file = fileInput.files[0];
 if (file) {
     const reader = new FileReader();
     reader.onload = function(event) {
-        fileBase64 = event.target.result; // Store Base64 string
-        viewFileBtn.style.display = "block"; // Show button when file is selected
+        fileBase64 = event.target.result;
+        viewFileBtn.style.display = "block";
     };
     reader.readAsDataURL(file);
 } else {
-    viewFileBtn.style.display = "none"; // Hide button if no file is selected
+    viewFileBtn.style.display = "none";
     fileBase64 = "";
 }
 });
 
-// Open the uploaded file in a new tab
 viewFileBtn.addEventListener("click", () => {
     event.preventDefault();
 if (fileBase64) {
@@ -174,7 +170,6 @@ if (fileBase64) {
 }
 });
 
-// Submit event listener
 document.getElementById("submitBtn").addEventListener("click", async () => {
 const email = document.getElementById("email").value;
 const lastname = document.getElementById("lastname").value;
@@ -188,7 +183,6 @@ if (!email || !lastname || !firstname || !fileBase64) {
     return;
 }
 
-// Get database reference and push data
 const dbRef = ref(getDatabase(), "guest");
 push(dbRef, {
     email,
@@ -197,14 +191,13 @@ push(dbRef, {
     middlename,
     nameext,
     room: roomName,
-    timeStatus,  // Store Time In / Time Out selection
-    validID: fileBase64, // Store Base64 file
-    timestamp: getPHTTimestamp() // Store timestamp in Philippine Time
+    timeStatus,
+    validID: fileBase64,
+    timestamp: getPHTTimestamp()
 });
 
 alert("Entry submitted successfully!");
 
-            // Clear form after submission
             document.getElementById("guestForm").reset();
             fileBase64 = "";
             viewFileBtn.style.display = "none";
