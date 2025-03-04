@@ -8,7 +8,7 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script type="module" src="firebase-config.js"></script>
     <style>
-       body {
+        body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
@@ -61,11 +61,6 @@
             height: 80px;
         }
 
-        input:focus, select:focus, textarea:focus {
-            border-color: #0096c7;
-            outline: none;
-        }
-
         .button {
             background-color: #0096c7;
             color: white;
@@ -79,23 +74,11 @@
             background-color: #005f80;
         }
 
-        .file-input {
-            border: none;
-            background: none;
-            width: 100%;
-        }
-
-        .file-label {
-            font-size: 14px;
-            color: #555;
-            text-align: left;
-            margin-bottom: 5px;
-        }
-
         .preview-container {
             display: none;
             margin-top: 10px;
             text-align: center;
+            cursor: pointer;
         }
 
         .preview-container img {
@@ -103,6 +86,27 @@
             max-height: 150px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
@@ -127,12 +131,12 @@
         <label for="purpose">Purpose of Visit:</label>
         <textarea id="purpose" class="input-field" placeholder="Enter your purpose of visit (max 500 characters)" maxlength="500" required></textarea>
 
-        <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
+        <label for="validID">Upload a clear image of your Valid ID:</label>
         <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
 
         <!-- Small preview of uploaded file -->
         <div class="preview-container" id="previewContainer">
-            <p>Uploaded ID Preview:</p>
+            <p>Uploaded ID Preview (Click to enlarge):</p>
             <img id="previewImage" src="" alt="ID Preview">
         </div>
 
@@ -140,78 +144,4 @@
     </form>
 </div>
 
-<script type="module">
-import { app, db } from "./firebase-config.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-
-const roomName = localStorage.getItem("scannedRoom");
-document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
-
-function getPHTTimestamp() {
-    const now = new Date();
-    const phtOffset = 8 * 60; // UTC+8
-    const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
-    return phtTime.toISOString().replace("Z", "+08:00");
-}
-
-const fileInput = document.getElementById("validID");
-const previewContainer = document.getElementById("previewContainer");
-const previewImage = document.getElementById("previewImage");
-let fileBase64 = "";
-
-// Handle file preview
-fileInput.addEventListener("change", () => {
-    const file = fileInput.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            fileBase64 = event.target.result;
-            previewImage.src = fileBase64;
-            previewContainer.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-    } else {
-        previewContainer.style.display = "none";
-        fileBase64 = "";
-    }
-});
-
-document.getElementById("submitBtn").addEventListener("click", async (event) => {
-    event.preventDefault();
-
-    const email = document.getElementById("email").value.trim();
-    const lastname = document.getElementById("lastname").value.trim();
-    const firstname = document.getElementById("firstname").value.trim();
-    const middlename = document.getElementById("middlename").value.trim();
-    const nameext = document.getElementById("nameext").value.trim();
-    const timeStatus = document.getElementById("timeStatus").value;
-    const purpose = document.getElementById("purpose").value.trim();
-
-    if (!email || !lastname || !firstname || !fileBase64 || !purpose) {
-        alert("Please fill in all required fields and upload a valid ID.");
-        return;
-    }
-
-    const dbRef = ref(getDatabase(), "guest");
-    push(dbRef, {
-        email,
-        lastname,
-        firstname,
-        middlename,
-        nameext,
-        room: roomName,
-        timeStatus,
-        purpose,
-        validID: fileBase64,
-        timestamp: getPHTTimestamp()
-    });
-
-    alert("Entry submitted successfully!");
-
-    document.getElementById("guestForm").reset();
-    previewContainer.style.display = "none";
-    fileBase64 = "";
-});
-</script>
-</body>
-</html>
+<!-- M
