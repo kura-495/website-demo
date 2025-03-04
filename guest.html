@@ -103,8 +103,6 @@
         .view-file-btn:hover {
             background-color: #218838;
         }
-
-        /* Progress Bar */
         .progress-container {
             width: 100%;
             background-color: #ddd;
@@ -146,11 +144,10 @@
             <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
             <input type="file" id="validID" class="file-input" accept="image/*" required>
 
-            <!-- Progress Bar -->
             <div class="progress-container" id="progressContainer">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-
+            
             <!-- File Preview -->
             <img id="filePreview" style="display: none;" />
 
@@ -174,49 +171,46 @@
         const fileInput = document.getElementById("validID");
         const filePreview = document.getElementById("filePreview");
         const viewFileBtn = document.getElementById("viewFileBtn");
-        const progressContainer = document.getElementById("progressContainer");
-        const progressBar = document.getElementById("progressBar");
-
         let fileBase64 = "";
 
         fileInput.addEventListener("change", () => {
-            const file = fileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
+    const file = fileInput.files[0];
+    if (file) {
+        const reader = new FileReader();
 
-                reader.onprogress = function(event) {
-                    if (event.lengthComputable) {
-                        const percentLoaded = Math.round((event.loaded / event.total) * 100);
-                        progressContainer.style.display = "block";
-                        progressBar.style.width = percentLoaded + "%";
-                    }
-                };
-
-                reader.onloadstart = function() {
-                    progressContainer.style.display = "block";
-                    progressBar.style.width = "0%";
-                };
-
-                reader.onload = function(event) {
-                    fileBase64 = event.target.result;
-                    filePreview.src = fileBase64;
-                    filePreview.style.display = "block";
-                    viewFileBtn.style.display = "block";
-                    progressBar.style.width = "100%";
-
-                    setTimeout(() => {
-                        progressContainer.style.display = "none";
-                    }, 500);
-                };
-
-                reader.readAsDataURL(file);
-            } else {
-                filePreview.style.display = "none";
-                viewFileBtn.style.display = "none";
-                progressContainer.style.display = "none";
-                fileBase64 = "";
+        reader.onprogress = function(event) {
+            if (event.lengthComputable) {
+                const percentLoaded = Math.round((event.loaded / event.total) * 100);
+                progressContainer.style.display = "block";
+                progressBar.style.width = percentLoaded + "%";
             }
-        });
+        };
+
+        reader.onloadstart = function() {
+            progressContainer.style.display = "block";
+            progressBar.style.width = "0%";
+        };
+
+        reader.onload = function(event) {
+            fileBase64 = event.target.result;
+            filePreview.src = fileBase64;
+            filePreview.style.display = "block";
+            viewFileBtn.style.display = "block";
+            progressBar.style.width = "100%";
+
+            setTimeout(() => {
+                progressContainer.style.display = "none";
+            }, 500);
+        };
+
+        reader.readAsDataURL(file);
+    } else {
+        filePreview.style.display = "none";
+        viewFileBtn.style.display = "none";
+        progressContainer.style.display = "none";
+        fileBase64 = "";
+    }
+});
 
         viewFileBtn.addEventListener("click", (event) => {
             event.preventDefault();
@@ -224,6 +218,35 @@
                 const newTab = window.open();
                 newTab.document.write(`<img src="${fileBase64}" width="100%">`);
             }
+        });
+
+        document.getElementById("submitBtn").addEventListener("click", async () => {
+            const email = document.getElementById("email").value;
+            const lastname = document.getElementById("lastname").value;
+            const firstname = document.getElementById("firstname").value;
+            const middlename = document.getElementById("middlename").value;
+            const nameext = document.getElementById("nameext").value;
+            const timeStatus = document.getElementById("timeStatus").value;
+            const purpose = document.getElementById("purpose").value;
+
+            console.log("Form Values:", { email, lastname, firstname, middlename, nameext, timeStatus, purpose, fileBase64 });
+
+            if (!email || !lastname || !firstname || !fileBase64) {
+                alert("Please fill in required fields and upload a valid ID.");
+                return;
+            }
+
+            const dbRef = ref(getDatabase(), "guest");
+            push(dbRef, {
+                email, lastname, firstname, middlename, nameext, room: roomName, floor: floorName,
+                timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
+            });
+
+            alert("Entry submitted successfully!");
+            document.getElementById("guestForm").reset();
+            filePreview.style.display = "none";
+            viewFileBtn.style.display = "none";
+            fileBase64 = "";
         });
     </script>
 </body>
