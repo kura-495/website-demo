@@ -87,6 +87,14 @@
             margin-bottom: 5px;
         }
 
+        #filePreview {
+            display: none;
+            max-width: 150px;
+            border-radius: 10px;
+            margin: 10px auto;
+            display: block;
+        }
+
         .view-file-btn {
             display: none;
             background-color: #28a745;
@@ -100,14 +108,6 @@
         .view-file-btn:hover {
             background-color: #218838;
         }
-
-       #filePreview {
-    display: none;
-    max-width: 150px;
-    border-radius: 10px;
-    margin: 10px auto;
-    display: block;
-}
     </style>
 </head>
 
@@ -121,7 +121,7 @@
             <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
             <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
             <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
-            
+
             <label for="timeStatus">Select Time In/Out:</label>
             <select id="timeStatus" class="dropdown" required>
                 <option value="Time In">Time In</option>
@@ -129,13 +129,16 @@
             </select>
 
             <label for="purpose">Purpose of Visit:</label>
-            <textarea id="purpose" rows="3" maxlength="500" placeholder="Enter purpose of visit (Max 500 characters)" required></textarea>
+            <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
 
             <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
             <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-            <img id="filePreview" src="" alt="Preview">
+            
+            <!-- File Preview -->
+            <img id="filePreview" style="display: none; max-width: 150px; border-radius: 10px; margin: 10px auto;" />
+
             <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
-            <button class="button" id="submitBtn">Enter</button>
+            <button type="button" class="button" id="submitBtn">Enter</button>
         </form>
     </div>
 
@@ -154,8 +157,8 @@
         }
 
         const fileInput = document.getElementById("validID");
-        const viewFileBtn = document.getElementById("viewFileBtn");
         const filePreview = document.getElementById("filePreview");
+        const viewFileBtn = document.getElementById("viewFileBtn");
         let fileBase64 = "";
 
         fileInput.addEventListener("change", () => {
@@ -164,14 +167,14 @@
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     fileBase64 = event.target.result;
-                    viewFileBtn.style.display = "block";
                     filePreview.src = fileBase64;
                     filePreview.style.display = "block";
+                    viewFileBtn.style.display = "block";
                 };
                 reader.readAsDataURL(file);
             } else {
-                viewFileBtn.style.display = "none";
                 filePreview.style.display = "none";
+                viewFileBtn.style.display = "none";
                 fileBase64 = "";
             }
         });
@@ -184,9 +187,7 @@
             }
         });
 
-        document.getElementById("submitBtn").addEventListener("click", async (event) => {
-            event.preventDefault();
-
+        document.getElementById("submitBtn").addEventListener("click", async () => {
             const email = document.getElementById("email").value;
             const lastname = document.getElementById("lastname").value;
             const firstname = document.getElementById("firstname").value;
@@ -195,28 +196,19 @@
             const timeStatus = document.getElementById("timeStatus").value;
             const purpose = document.getElementById("purpose").value;
 
-            if (!email || !lastname || !firstname || !fileBase64 || !purpose) {
+            if (!email || !lastname || !firstname || !fileBase64) {
                 alert("Please fill in required fields and upload a valid ID.");
                 return;
             }
 
             const dbRef = ref(getDatabase(), "guest");
             push(dbRef, {
-                email,
-                lastname,
-                firstname,
-                middlename,
-                nameext,
-                room: roomName,
-                timeStatus,
-                purpose,
-                validID: fileBase64,
-                timestamp: getPHTTimestamp()
+                email, lastname, firstname, middlename, nameext, room: roomName,
+                timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
             });
 
             alert("Entry submitted successfully!");
             document.getElementById("guestForm").reset();
-            fileBase64 = "";
             filePreview.style.display = "none";
             viewFileBtn.style.display = "none";
         });
