@@ -53,7 +53,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
-            margin-bottom: 10px; /* Added spacing */
+            margin-bottom: 10px;
         }
 
         textarea {
@@ -89,21 +89,20 @@
             font-size: 14px;
             color: #555;
             text-align: left;
-            margin-bottom: 5px; /* Added spacing */
+            margin-bottom: 5px;
         }
 
-        .view-file-btn {
+        .preview-container {
             display: none;
-            background-color: #28a745;
-            padding: 8px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 10px; /* Added spacing */
+            margin-top: 10px;
+            text-align: center;
         }
 
-        .view-file-btn:hover {
-            background-color: #218838;
+        .preview-container img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -130,7 +129,13 @@
 
         <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
         <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-        <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
+
+        <!-- Small preview of uploaded file -->
+        <div class="preview-container" id="previewContainer">
+            <p>Uploaded ID Preview:</p>
+            <img id="previewImage" src="" alt="ID Preview">
+        </div>
+
         <button class="button" id="submitBtn">Enter</button>
     </form>
 </div>
@@ -150,29 +155,24 @@ function getPHTTimestamp() {
 }
 
 const fileInput = document.getElementById("validID");
-const viewFileBtn = document.getElementById("viewFileBtn");
+const previewContainer = document.getElementById("previewContainer");
+const previewImage = document.getElementById("previewImage");
 let fileBase64 = "";
 
+// Handle file preview
 fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
             fileBase64 = event.target.result;
-            viewFileBtn.style.display = "block";
+            previewImage.src = fileBase64;
+            previewContainer.style.display = "block";
         };
         reader.readAsDataURL(file);
     } else {
-        viewFileBtn.style.display = "none";
+        previewContainer.style.display = "none";
         fileBase64 = "";
-    }
-});
-
-viewFileBtn.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (fileBase64) {
-        const newTab = window.open();
-        newTab.document.write(`<img src="${fileBase64}" width="100%">`);
     }
 });
 
@@ -209,8 +209,8 @@ document.getElementById("submitBtn").addEventListener("click", async (event) => 
     alert("Entry submitted successfully!");
 
     document.getElementById("guestForm").reset();
+    previewContainer.style.display = "none";
     fileBase64 = "";
-    viewFileBtn.style.display = "none";
 });
 </script>
 </body>
