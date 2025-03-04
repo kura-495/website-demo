@@ -9,18 +9,24 @@
     <script type="module" src="firebase-config.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #00c6ff, #0077b6);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #e0f7ff;
+            justify-content: center;
+            height: 100vh;
+            color: #ffffff;
             text-align: center;
         }
 
         h1 {
-            color: #0077b6;
+            font-size: 36px;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         .room-info {
@@ -28,50 +34,42 @@
             margin-bottom: 20px;
             color: #ffffff;
             font-weight: bold;
-            background-color: #0077b6;
-            padding: 10px;
-            border-radius: 5px;
+            background-color: rgba(0, 119, 182, 0.8);
+            padding: 15px;
+            border-radius: 8px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
+            margin: 0 auto 20px;
         }
 
         .form-container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
         }
 
         input, select, textarea, button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
             box-sizing: border-box;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease-in-out;
         }
 
         input:focus, select:focus, textarea:focus {
             border-color: #0096c7;
             outline: none;
-        }
-
-        .button {
-            background-color: #0096c7;
-            color: white;
-            font-size: 18px;
-            border: none;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .button:hover {
-            background-color: #005f80;
+            box-shadow: 0 0 5px rgba(0, 150, 199, 0.5);
         }
 
         .file-input {
@@ -84,29 +82,58 @@
             font-size: 14px;
             color: #555;
             text-align: left;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+        }
+
+        .button {
+            background-color: #0096c7;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            padding: 14px;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #005f80;
+        }
+
+        .button:active {
+            transform: scale(0.98);
         }
 
         #filePreview {
             display: none;
             max-width: 150px;
             border-radius: 10px;
-            margin: 10px auto;
-            display: block;
+            margin-top: 15px;
         }
 
         .view-file-btn {
             display: none;
             background-color: #28a745;
-            padding: 8px;
+            padding: 10px;
             font-size: 16px;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            transition: background-color 0.3s;
         }
 
         .view-file-btn:hover {
             background-color: #218838;
+        }
+
+        .form-container input,
+        .form-container select,
+        .form-container textarea {
+            font-size: 16px;
+        }
+
+        .form-container textarea {
+            resize: vertical;
         }
     </style>
 </head>
@@ -133,7 +160,7 @@
 
             <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
             <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-            
+
             <!-- File Preview -->
             <img id="filePreview" style="display: none; max-width: 150px; border-radius: 10px; margin: 10px auto;" />
 
