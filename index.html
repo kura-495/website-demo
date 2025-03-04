@@ -115,8 +115,9 @@
                 roomInfoElement.innerHTML = `Logging in<br><br><span class='room-name'>${roomData.roomName}</span><br><span class='floor-info'>Floor: ${roomData.floor}</span>`;
                 
                 localStorage.setItem("scannedRoom", roomData.roomName);
+                localStorage.setItem("scannedFloor", roomData.floor);
                 
-                console.log("LocalStorage Data:", localStorage.getItem("scannedRoom"));
+                console.log("LocalStorage Data:", localStorage.getItem("scannedRoom"), localStorage.getItem("scannedFloor"));
                 
                 buttonContainer.style.display = "flex";
             } else {
