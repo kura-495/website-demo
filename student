@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Registration</title>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #e0f7ff;
+            text-align: center;
+        }
+
+        h1 {
+            color: #0077b6;
+        }
+
+        .room-info {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            font-weight: bold;
+            background-color: #0077b6;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #0096c7;
+            outline: none;
+        }
+
+        .button {
+            background-color: #0096c7;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background-color: #005f80;
+        }
+
+        .file-input {
+            border: none;
+            background: none;
+            width: 100%;
+        }
+
+        .file-label {
+            font-size: 14px;
+            color: #555;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        #filePreview {
+            display: none;
+            max-width: 150px;
+            border-radius: 10px;
+            margin: 10px auto;
+            display: block;
+        }
+
+        .view-file-btn {
+            display: none;
+            background-color: #28a745;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .view-file-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Guest Registration</h1>
+    <div class="room-info" id="room-info">Fetching Room Info...</div>
+    <div class="form-container">
+        <form id="guestForm">
+            <input type="email" id="email" class="input-field" placeholder="E-mail" required>
+            <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
+            <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
+            <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
+            <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
+
+            <label for="timeStatus">Select Time In/Out:</label>
+            <select id="timeStatus" class="dropdown" required>
+                <option value="Time In">Time In</option>
+                <option value="Time Out">Time Out</option>
+            </select>
+
+            <label for="purpose">Purpose of Visit:</label>
+            <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
+
+            <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
+            <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
+            
+            <!-- File Preview -->
+            <img id="filePreview" style="display: none; max-width: 150px; border-radius: 10px; margin: 10px auto;" />
+
+            <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
+            <button type="button" class="button" id="submitBtn">Enter</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { app, db } from "./firebase-config.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const roomName = localStorage.getItem("scannedRoom");
+        document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
+
+        function getPHTTimestamp() {
+            const now = new Date();
+            const phtOffset = 8 * 60; // UTC+8
+            const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
+            return phtTime.toISOString().replace("Z", "+08:00");
+        }
+
+        const fileInput = document.getElementById("validID");
+        const filePreview = document.getElementById("filePreview");
+        const viewFileBtn = document.getElementById("viewFileBtn");
+        let fileBase64 = "";
+
+        fileInput.addEventListener("change", () => {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    fileBase64 = event.target.result;
+                    filePreview.src = fileBase64;
+                    filePreview.style.display = "block";
+                    viewFileBtn.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filePreview.style.display = "none";
+                viewFileBtn.style.display = "none";
+                fileBase64 = "";
+            }
+        });
+
+        viewFileBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            if (fileBase64) {
+                const newTab = window.open();
+                newTab.document.write(`<img src="${fileBase64}" width="100%">`);
+            }
+        });
+
+        document.getElementById("submitBtn").addEventListener("click", async () => {
+            const email = document.getElementById("email").value;
+            const lastname = document.getElementById("lastname").value;
+            const firstname = document.getElementById("firstname").value;
+            const middlename = document.getElementById("middlename").value;
+            const nameext = document.getElementById("nameext").value;
+            const timeStatus = document.getElementById("timeStatus").value;
+            const purpose = document.getElementById("purpose").value;
+
+            if (!email || !lastname || !firstname || !fileBase64) {
+                alert("Please fill in required fields and upload a valid ID.");
+                return;
+            }
+
+            const dbRef = ref(getDatabase(), "guest");
+            push(dbRef, {
+                email, lastname, firstname, middlename, nameext, room: roomName,
+                timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
+            });
+
+            alert("Entry submitted successfully!");
+            document.getElementById("guestForm").reset();
+            filePreview.style.display = "none";
+            viewFileBtn.style.display = "none";
+        });
+    </script>
+</body>
+</html>
