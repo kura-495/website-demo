@@ -115,7 +115,7 @@
     <h1>Student Registration</h1>
     <div class="room-info" id="room-info">Fetching Room Info...</div>
     <div class="form-container">
-        <form id="guestForm">
+        <form id="studentForm">
             <input type="email" id="email" class="input-field" placeholder="E-mail" required>
             <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
             <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
@@ -201,14 +201,14 @@
                 return;
             }
 
-            const dbRef = ref(getDatabase(), "Student");
+            const dbRef = ref(getDatabase(), "student");
             push(dbRef, {
                 email, lastname, firstname, middlename, nameext, room: roomName,
                 timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
             });
 
             alert("Entry submitted successfully!");
-            document.getElementById("StudentForm").reset();
+            document.getElementById("studentForm").reset();
             filePreview.style.display = "none";
             viewFileBtn.style.display = "none";
         });
