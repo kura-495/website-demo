@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guest Registration</title>
+    <title>Student Registration</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script type="module" src="firebase-config.js"></script>
@@ -201,14 +201,14 @@
                 return;
             }
 
-            const dbRef = ref(getDatabase(), "guest");
+            const dbRef = ref(getDatabase(), "Student");
             push(dbRef, {
                 email, lastname, firstname, middlename, nameext, room: roomName,
                 timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
             });
 
             alert("Entry submitted successfully!");
-            document.getElementById("guestForm").reset();
+            document.getElementById("StudentForm").reset();
             filePreview.style.display = "none";
             viewFileBtn.style.display = "none";
         });
