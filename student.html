@@ -16,7 +16,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Changed from center to start for scrollability */
+            justify-content: center; /* Center the content vertically */
             height: 100vh;
             color: #ffffff;
             text-align: center;
@@ -28,8 +28,8 @@
             color: #ffffff;
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            z-index: 1;  /* Ensure it is visible on top of background */
-            margin-top: 50px; /* Added margin to ensure the header is not hidden */
+            z-index: 1;
+            margin-top: 20px; /* Added margin to ensure the header is not hidden */
         }
 
         .room-info {
@@ -56,6 +56,8 @@
             flex-direction: column;
             align-items: center;
             box-sizing: border-box;
+            max-height: 80vh; /* Added a max height for the container */
+            overflow-y: auto; /* Enable scrolling within the form if content exceeds max height */
         }
 
         input, select, textarea, button {
