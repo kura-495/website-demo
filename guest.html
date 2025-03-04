@@ -56,11 +56,6 @@
             margin-bottom: 10px;
         }
 
-        input:focus, select:focus, textarea:focus {
-            border-color: #0096c7;
-            outline: none;
-        }
-
         .button {
             background-color: #0096c7;
             color: white;
@@ -116,14 +111,14 @@
     <div class="room-info" id="room-info">Fetching Room Info...</div>
     <div class="form-container">
         <form id="guestForm">
-            <input type="email" id="email" class="input-field" placeholder="E-mail" required>
-            <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
-            <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
-            <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
-            <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
+            <input type="email" id="email" placeholder="E-mail" required>
+            <input type="text" id="lastname" placeholder="Last Name" required>
+            <input type="text" id="firstname" placeholder="First Name" required>
+            <input type="text" id="middlename" placeholder="Middle Name (Optional)">
+            <input type="text" id="nameext" placeholder="Name Extension (Optional)">
 
             <label for="timeStatus">Select Time In/Out:</label>
-            <select id="timeStatus" class="dropdown" required>
+            <select id="timeStatus" required>
                 <option value="Time In">Time In</option>
                 <option value="Time Out">Time Out</option>
             </select>
@@ -132,10 +127,10 @@
             <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
 
             <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
-            <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-            
+            <input type="file" id="validID" class="file-input" accept="image/*" required>
+
             <!-- File Preview -->
-            <img id="filePreview" style="display: none; max-width: 150px; border-radius: 10px; margin: 10px auto;" />
+            <img id="filePreview" style="display: none;" />
 
             <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
             <button type="button" class="button" id="submitBtn">Enter</button>
@@ -149,11 +144,9 @@
         const roomName = localStorage.getItem("scannedRoom");
         const floorName = localStorage.getItem("scannedFloor");
         document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
+
         function getPHTTimestamp() {
-            const now = new Date();
-            const phtOffset = 8 * 60; // UTC+8
-            const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
-            return phtTime.toISOString().replace("Z", "+08:00");
+            return new Date().toISOString().replace("Z", "+08:00");
         }
 
         const fileInput = document.getElementById("validID");
@@ -170,6 +163,7 @@
                     filePreview.src = fileBase64;
                     filePreview.style.display = "block";
                     viewFileBtn.style.display = "block";
+                    console.log("File successfully converted to Base64");
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -196,6 +190,8 @@
             const timeStatus = document.getElementById("timeStatus").value;
             const purpose = document.getElementById("purpose").value;
 
+            console.log("Form Values:", { email, lastname, firstname, middlename, nameext, timeStatus, purpose, fileBase64 });
+
             if (!email || !lastname || !firstname || !fileBase64) {
                 alert("Please fill in required fields and upload a valid ID.");
                 return;
@@ -203,7 +199,7 @@
 
             const dbRef = ref(getDatabase(), "guest");
             push(dbRef, {
-                email, lastname, firstname, middlename, nameext, room: roomName, flor: floorName,
+                email, lastname, firstname, middlename, nameext, room: roomName, floor: floorName,
                 timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
             });
 
@@ -211,6 +207,7 @@
             document.getElementById("guestForm").reset();
             filePreview.style.display = "none";
             viewFileBtn.style.display = "none";
+            fileBase64 = "";
         });
     </script>
 </body>
