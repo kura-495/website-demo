@@ -18,9 +18,10 @@
             align-items: center;
             justify-content: center; /* Center the content vertically */
             height: 100vh;
+            width: 100%; /* Ensure body takes full width */
             color: #ffffff;
             text-align: center;
-            overflow-y: auto; /* Enable scrolling if content overflows */
+            overflow: hidden; /* Prevent horizontal scroll on body */
         }
 
         h1 {
@@ -58,6 +59,7 @@
             box-sizing: border-box;
             max-height: 80vh; /* Added a max height for the container */
             overflow-y: auto; /* Enable scrolling within the form if content exceeds max height */
+            overflow-x: hidden; /* Prevent horizontal overflow */
         }
 
         input, select, textarea, button {
