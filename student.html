@@ -16,10 +16,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start; /* Changed from center to start for scrollability */
             height: 100vh;
             color: #ffffff;
             text-align: center;
+            overflow-y: auto; /* Enable scrolling if content overflows */
         }
 
         h1 {
@@ -28,6 +29,7 @@
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             z-index: 1;  /* Ensure it is visible on top of background */
+            margin-top: 50px; /* Added margin to ensure the header is not hidden */
         }
 
         .room-info {
