@@ -147,8 +147,9 @@
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const roomName = localStorage.getItem("scannedRoom");
+        const floorName = localStorage.getItem("scannedFloor");
         document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
-
+        document.getElementById("room-info").innerText = floorName ? `You are in: ${floorName}` : "Floor info not found";
         function getPHTTimestamp() {
             const now = new Date();
             const phtOffset = 8 * 60; // UTC+8
@@ -203,7 +204,7 @@
 
             const dbRef = ref(getDatabase(), "guest");
             push(dbRef, {
-                email, lastname, firstname, middlename, nameext, room: roomName,
+                email, lastname, firstname, middlename, nameext, room: roomName, flor: floorName,
                 timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
             });
 
