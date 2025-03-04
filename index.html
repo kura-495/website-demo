@@ -88,7 +88,7 @@
     <div class="button-container" id="button-container">
         <button class="button">Staff</button>
         <button class="button" id="guest-button">Guest/Visitor</button>
-        <button class="button">Student</button>
+        <button class="button" id="student-button">Student</button>
     </div>
 
     <script type="module">
@@ -128,6 +128,9 @@
 
         document.getElementById("guest-button").addEventListener("click", () => {
             window.location.href = "guest.html";
+        });
+         document.getElementById("student-button").addEventListener("click", () => {
+            window.location.href = "student.html";
         });
     </script>
 </body> 
