@@ -9,28 +9,18 @@
     <script type="module" src="firebase-config.js"></script>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #00c6ff, #0077b6);
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Center the content vertically */
-            align-items: center; /* Center the content horizontally */
-            height: 100vh;
-            width: 100%; /* Ensure body takes full width */
-            color: #ffffff;
+            align-items: center;
+            background-color: #e0f7ff;
             text-align: center;
-            overflow-x: hidden; /* Prevent horizontal overflow */
         }
 
         h1 {
-            font-size: 36px;
-            color: #ffffff;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            z-index: 1;
-            margin-top: 20px; /* Added margin to ensure the header is not hidden */
+            color: #0077b6;
         }
 
         .room-info {
@@ -38,45 +28,50 @@
             margin-bottom: 20px;
             color: #ffffff;
             font-weight: bold;
-            background-color: rgba(0, 119, 182, 0.8);
-            padding: 15px;
-            border-radius: 8px;
+            background-color: #0077b6;
+            padding: 10px;
+            border-radius: 5px;
             width: 100%;
-            max-width: 420px;
-            margin: 0 auto 20px;
+            max-width: 400px;
         }
 
         .form-container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             width: 100%;
-            max-width: 420px;
+            max-width: 400px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            box-sizing: border-box;
-            max-height: 80vh; /* Added a max height for the container */
-            overflow-y: auto; /* Enable scrolling within the form if content exceeds max height */
-            overflow-x: hidden; /* Prevent horizontal overflow */
         }
 
         input, select, textarea, button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             font-size: 16px;
             border: 1px solid #ccc;
-            border-radius: 8px;
+            border-radius: 5px;
             box-sizing: border-box;
-            margin-bottom: 12px;
-            transition: all 0.3s ease-in-out;
+            margin-bottom: 10px;
         }
 
         input:focus, select:focus, textarea:focus {
             border-color: #0096c7;
             outline: none;
-            box-shadow: 0 0 5px rgba(0, 150, 199, 0.5);
+        }
+
+        .button {
+            background-color: #0096c7;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background-color: #005f80;
         }
 
         .file-input {
@@ -89,58 +84,29 @@
             font-size: 14px;
             color: #555;
             text-align: left;
-            margin-bottom: 8px;
-        }
-
-        .button {
-            background-color: #0096c7;
-            color: white;
-            font-size: 18px;
-            border: none;
-            cursor: pointer;
-            padding: 14px;
-            border-radius: 8px;
-            transition: background-color 0.3s;
-        }
-
-        .button:hover {
-            background-color: #005f80;
-        }
-
-        .button:active {
-            transform: scale(0.98);
+            margin-bottom: 5px;
         }
 
         #filePreview {
             display: none;
             max-width: 150px;
             border-radius: 10px;
-            margin-top: 15px;
+            margin: 10px auto;
+            display: block;
         }
 
         .view-file-btn {
             display: none;
             background-color: #28a745;
-            padding: 10px;
+            padding: 8px;
             font-size: 16px;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
-            margin-bottom: 15px;
-            transition: background-color 0.3s;
+            margin-bottom: 10px;
         }
 
         .view-file-btn:hover {
             background-color: #218838;
-        }
-
-        .form-container input,
-        .form-container select,
-        .form-container textarea {
-            font-size: 16px;
-        }
-
-        .form-container textarea {
-            resize: vertical;
         }
     </style>
 </head>
@@ -167,7 +133,7 @@
 
             <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
             <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-
+            
             <!-- File Preview -->
             <img id="filePreview" style="display: none; max-width: 150px; border-radius: 10px; margin: 10px auto;" />
 
@@ -181,7 +147,7 @@
         import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const roomName = localStorage.getItem("scannedRoom");
-        document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
+        document.getElementById("room-info").innerText = roomName ? You are in: ${roomName} : "Room info not found";
 
         function getPHTTimestamp() {
             const now = new Date();
@@ -217,7 +183,7 @@
             event.preventDefault();
             if (fileBase64) {
                 const newTab = window.open();
-                newTab.document.write(`<img src="${fileBase64}" width="100%">`);
+                newTab.document.write(<img src="${fileBase64}" width="100%">);
             }
         });
 
@@ -248,4 +214,4 @@
         });
     </script>
 </body>
-</html>
+</html>    
