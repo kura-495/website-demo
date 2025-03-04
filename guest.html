@@ -9,99 +9,102 @@
     <script type="module" src="firebase-config.js"></script>
     <style>
        body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #e0f7ff;
-    text-align: center;
-}
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #e0f7ff;
+            text-align: center;
+        }
 
-h1 {
-    color: #0077b6;
-}
+        h1 {
+            color: #0077b6;
+        }
 
-.room-info {
-    font-size: 18px;
-    margin-bottom: 20px;
-    color: #ffffff;
-    font-weight: bold;
-    background-color: #0077b6;
-    padding: 10px;
-    border-radius: 5px;
-    width: 100%;
-    max-width: 400px;
-}
+        .room-info {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            font-weight: bold;
+            background-color: #0077b6;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+        }
 
-.form-container {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-}
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+        }
 
-input, select, button {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-    margin-bottom: 10px; /* Added spacing */
-}
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 10px; /* Added spacing */
+        }
 
-input:focus, select:focus {
-    border-color: #0096c7;
-    outline: none;
-}
+        textarea {
+            resize: none;
+            height: 80px;
+        }
 
-.button {
-    background-color: #0096c7;
-    color: white;
-    font-size: 18px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.3s;
-}
+        input:focus, select:focus, textarea:focus {
+            border-color: #0096c7;
+            outline: none;
+        }
 
-.button:hover {
-    background-color: #005f80;
-}
+        .button {
+            background-color: #0096c7;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
 
-.file-input {
-    border: none;
-    background: none;
-    width: 100%;
-}
+        .button:hover {
+            background-color: #005f80;
+        }
 
-.file-label {
-    font-size: 14px;
-    color: #555;
-    text-align: left;
-    margin-bottom: 5px; /* Added spacing */
-}
+        .file-input {
+            border: none;
+            background: none;
+            width: 100%;
+        }
 
-.view-file-btn {
-    display: none;
-    background-color: #28a745;
-    padding: 8px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 10px; /* Added spacing */
-}
+        .file-label {
+            font-size: 14px;
+            color: #555;
+            text-align: left;
+            margin-bottom: 5px; /* Added spacing */
+        }
 
-.view-file-btn:hover {
-    background-color: #218838;
-}
+        .view-file-btn {
+            display: none;
+            background-color: #28a745;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px; /* Added spacing */
+        }
 
-
+        .view-file-btn:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 
@@ -109,24 +112,27 @@ input:focus, select:focus {
 <h1>Guest Registration</h1>
 <div class="room-info" id="room-info">Fetching Room Info...</div>
 <div class="form-container">
-<form id="guestForm">
-            <input type="email" id="email" class="input-field" placeholder="E-mail" required>
-            <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
-            <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
-            <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
-            <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
-            
-            <label for="timeStatus">Select Time In/Out:</label>
-            <select id="timeStatus" class="dropdown" required>
-                <option value="Time In">Time In</option>
-                <option value="Time Out">Time Out</option>
-            </select>
+    <form id="guestForm">
+        <input type="email" id="email" class="input-field" placeholder="E-mail" required>
+        <input type="text" id="lastname" class="input-field" placeholder="Last Name" required>
+        <input type="text" id="firstname" class="input-field" placeholder="First Name" required>
+        <input type="text" id="middlename" class="input-field" placeholder="Middle Name (Optional)">
+        <input type="text" id="nameext" class="input-field" placeholder="Name Extension (Optional)">
+        
+        <label for="timeStatus">Select Time In/Out:</label>
+        <select id="timeStatus" class="dropdown" required>
+            <option value="Time In">Time In</option>
+            <option value="Time Out">Time Out</option>
+        </select>
 
-            <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
-            <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
-            <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
-            <button class="button" id="submitBtn">Enter</button>
-        </form>
+        <label for="purpose">Purpose of Visit:</label>
+        <textarea id="purpose" class="input-field" placeholder="Enter your purpose of visit (max 500 characters)" maxlength="500" required></textarea>
+
+        <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
+        <input type="file" id="validID" class="input-field file-input" accept="image/*" required>
+        <button class="button view-file-btn" id="viewFileBtn">View Uploaded File</button>
+        <button class="button" id="submitBtn">Enter</button>
+    </form>
 </div>
 
 <script type="module">
@@ -137,10 +143,10 @@ const roomName = localStorage.getItem("scannedRoom");
 document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
 
 function getPHTTimestamp() {
-const now = new Date();
-const phtOffset = 8 * 60; // UTC+8
-const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
-return phtTime.toISOString().replace("Z", "+08:00");
+    const now = new Date();
+    const phtOffset = 8 * 60; // UTC+8
+    const phtTime = new Date(now.getTime() + phtOffset * 60 * 1000);
+    return phtTime.toISOString().replace("Z", "+08:00");
 }
 
 const fileInput = document.getElementById("validID");
@@ -148,59 +154,63 @@ const viewFileBtn = document.getElementById("viewFileBtn");
 let fileBase64 = "";
 
 fileInput.addEventListener("change", () => {
-const file = fileInput.files[0];
-if (file) {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        fileBase64 = event.target.result;
-        viewFileBtn.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-} else {
-    viewFileBtn.style.display = "none";
-    fileBase64 = "";
-}
+    const file = fileInput.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            fileBase64 = event.target.result;
+            viewFileBtn.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    } else {
+        viewFileBtn.style.display = "none";
+        fileBase64 = "";
+    }
 });
 
-viewFileBtn.addEventListener("click", () => {
+viewFileBtn.addEventListener("click", (event) => {
     event.preventDefault();
-if (fileBase64) {
-    const newTab = window.open();
-    newTab.document.write(`<img src="${fileBase64}" width="100%">`);
-}
+    if (fileBase64) {
+        const newTab = window.open();
+        newTab.document.write(`<img src="${fileBase64}" width="100%">`);
+    }
 });
 
-document.getElementById("submitBtn").addEventListener("click", async () => {
-const email = document.getElementById("email").value;
-const lastname = document.getElementById("lastname").value;
-const firstname = document.getElementById("firstname").value;
-const middlename = document.getElementById("middlename").value;
-const nameext = document.getElementById("nameext").value;
-const timeStatus = document.getElementById("timeStatus").value;
+document.getElementById("submitBtn").addEventListener("click", async (event) => {
+    event.preventDefault();
 
-if (!email || !lastname || !firstname || !fileBase64) {
-    alert("Please fill in required fields and upload a valid ID.");
-    return;
-}
+    const email = document.getElementById("email").value.trim();
+    const lastname = document.getElementById("lastname").value.trim();
+    const firstname = document.getElementById("firstname").value.trim();
+    const middlename = document.getElementById("middlename").value.trim();
+    const nameext = document.getElementById("nameext").value.trim();
+    const timeStatus = document.getElementById("timeStatus").value;
+    const purpose = document.getElementById("purpose").value.trim();
 
-const dbRef = ref(getDatabase(), "guest");
-push(dbRef, {
-    email,
-    lastname,
-    firstname,
-    middlename,
-    nameext,
-    room: roomName,
-    timeStatus,
-    validID: fileBase64,
-    timestamp: getPHTTimestamp()
-});
+    if (!email || !lastname || !firstname || !fileBase64 || !purpose) {
+        alert("Please fill in all required fields and upload a valid ID.");
+        return;
+    }
 
-alert("Entry submitted successfully!");
+    const dbRef = ref(getDatabase(), "guest");
+    push(dbRef, {
+        email,
+        lastname,
+        firstname,
+        middlename,
+        nameext,
+        room: roomName,
+        timeStatus,
+        purpose,
+        validID: fileBase64,
+        timestamp: getPHTTimestamp()
+    });
 
-            document.getElementById("guestForm").reset();
-            fileBase64 = "";
-            viewFileBtn.style.display = "none";
+    alert("Entry submitted successfully!");
+
+    document.getElementById("guestForm").reset();
+    fileBase64 = "";
+    viewFileBtn.style.display = "none";
 });
 </script>
 </body>
