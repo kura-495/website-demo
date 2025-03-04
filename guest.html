@@ -148,8 +148,7 @@
 
         const roomName = localStorage.getItem("scannedRoom");
         const floorName = localStorage.getItem("scannedFloor");
-        document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName}` : "Room info not found";
-        document.getElementById("room-info").innerText = floorName ? `You are in: ${floorName}` : "Floor info not found";
+        document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName} <br> on ${floorName}` : "Room info not found";
         function getPHTTimestamp() {
             const now = new Date();
             const phtOffset = 8 * 60; // UTC+8
