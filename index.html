@@ -96,7 +96,7 @@
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
         const params = new URLSearchParams(window.location.search);
-        const roomID = params.get("id"); // Use URL first, fallback to localStorage
+        const roomID = params.get("id");
 
         const buttonContainer = document.getElementById("button-container");
 
