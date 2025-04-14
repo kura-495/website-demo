@@ -139,7 +139,7 @@
   const inputUsername = document.getElementById("loginUsername").value.trim();
   const inputPassword = document.getElementById("loginPassword").value;
 
-  const staffRef = ref(db, "staff");
+  const staffRef = ref(db, "accounts/staff");
   const snapshot = await get(staffRef);
 
   if (snapshot.exists()) {
