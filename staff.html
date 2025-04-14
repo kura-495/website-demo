@@ -136,7 +136,7 @@
     const db = getDatabase();
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
-  const inputUsername = document.getElementById("loginUsername").value;
+  const inputUsername = document.getElementById("loginUsername").value.trim();
   const inputPassword = document.getElementById("loginPassword").value;
 
   const staffRef = ref(db, "staff");
@@ -144,26 +144,20 @@
 
   if (snapshot.exists()) {
     const data = snapshot.val();
-    let loggedIn = false;
+    console.log("Fetched staff data:", data);
 
-    // Loop through all staff entries to check for matching credentials
-    for (const key in data) {
-      if (data[key].u_name === inputUsername && data[key].p_word === inputPassword) {
-        loggedIn = true;
-        sessionStorage.setItem("loggedIn", "true");
-        loginContainer.classList.add("hidden");
-        mainContent.classList.remove("hidden");
-        break;
-      }
-    }
-
-    if (!loggedIn) {
+    if (data.u_name === inputUsername && data.p_word === inputPassword) {
+      sessionStorage.setItem("loggedIn", "true");
+      loginContainer.classList.add("hidden");
+      mainContent.classList.remove("hidden");
+    } else {
       alert("Incorrect username or password.");
     }
   } else {
-    alert("No account data found.");
+    alert("No staff account data found.");
   }
 });
+;
 
     // Show room info
     const roomName = localStorage.getItem("scannedRoom");
