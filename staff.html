@@ -68,14 +68,29 @@
         .button:hover {
             background-color: #005f80;
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 
 <body>
     <h1>Staff Registration</h1>
-    <div class="room-info" id="room-info">Fetching Room Info...</div>
-    <div class="form-container">
-        <form id="guestForm">
+
+    <!-- Login Form -->
+    <div class="form-container" id="loginForm">
+        <input type="text" id="loginUsername" placeholder="Username" required />
+        <input type="password" id="loginPassword" placeholder="Password" required />
+        <button class="button" id="loginBtn">Login</button>
+    </div>
+
+    <!-- Room Info -->
+    <div class="room-info hidden" id="room-info">Fetching Room Info...</div>
+
+    <!-- Staff Registration Form -->
+    <div class="form-container hidden" id="staffFormContainer">
+        <form id="staffForm">
             <input type="email" id="email" placeholder="E-mail" required>
             <input type="text" id="lastname" placeholder="Last Name" required>
             <input type="text" id="firstname" placeholder="First Name" required>
@@ -99,15 +114,67 @@
 
     <script type="module">
         import { app, db } from "./firebase-config.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const loginForm = document.getElementById("loginForm");
+        const staffFormContainer = document.getElementById("staffFormContainer");
+        const roomInfo = document.getElementById("room-info");
 
         const roomName = localStorage.getItem("scannedRoom");
         const floorName = localStorage.getItem("scannedFloor");
-        document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
+        roomInfo.innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
 
         function getPHTTimestamp() {
             return new Date().toISOString().replace("Z", "+08:00");
         }
+
+        // Auto-logout on page unload
+        window.addEventListener("beforeunload", () => {
+            sessionStorage.removeItem("isLoggedIn");
+        });
+
+        // Check login status
+        if (sessionStorage.getItem("isLoggedIn") === "true") {
+            loginForm.classList.add("hidden");
+            staffFormContainer.classList.remove("hidden");
+            roomInfo.classList.remove("hidden");
+        }
+
+        document.getElementById("loginBtn").addEventListener("click", async () => {
+            const username = document.getElementById("loginUsername").value.trim();
+            const password = document.getElementById("loginPassword").value.trim();
+
+            if (!username || !password) {
+                alert("Please enter both username and password.");
+                return;
+            }
+
+            const dbRef = ref(getDatabase());
+            try {
+                const snapshot = await get(child(dbRef, "staff/accounts"));
+                if (snapshot.exists()) {
+                    const accounts = snapshot.val();
+                    const isValid = Object.values(accounts).some(
+                        acc => acc.u_name === username && acc.p_word === password
+                    );
+
+                    if (isValid) {
+                        alert("Login successful!");
+                        sessionStorage.setItem("isLoggedIn", "true");
+                        loginForm.classList.add("hidden");
+                        staffFormContainer.classList.remove("hidden");
+                        roomInfo.classList.remove("hidden");
+                    } else {
+                        alert("Invalid username or password.");
+                    }
+                } else {
+                    alert("No accounts found.");
+                }
+            } catch (error) {
+                console.error("Error fetching accounts:", error);
+                alert("Error checking credentials.");
+            }
+        });
 
         document.getElementById("submitBtn").addEventListener("click", async () => {
             const email = document.getElementById("email").value;
@@ -124,7 +191,7 @@
                 return;
             }
 
-            const dbRef = ref(getDatabase(), "accounts");
+            const dbRef = ref(getDatabase(), "staff");
             push(dbRef, {
                 email,
                 lastname,
@@ -140,7 +207,7 @@
             });
 
             alert("Entry submitted successfully!");
-            document.getElementById("guestForm").reset();
+            document.getElementById("staffForm").reset();
         });
     </script>
 </body>
