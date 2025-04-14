@@ -86,7 +86,7 @@
     <h1>QRLog</h1>
     <div class="room-info" id="room-info"><span class="spinner"></span> Loading...</div>
     <div class="button-container" id="button-container">
-        <button class="button">Staff</button>
+        <button class="button" id="staff-button">Staff</button>
         <button class="button" id="guest-button">Guest/Visitor</button>
         <button class="button" id="student-button">Student</button>
     </div>
@@ -132,6 +132,9 @@
         });
          document.getElementById("student-button").addEventListener("click", () => {
             window.location.href = "student.html";
+        });
+         document.getElementById("staff-button").addEventListener("click", () => {
+            window.location.href = "staff.html";
         });
     </script>
 </body> 
