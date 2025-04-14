@@ -65,9 +65,18 @@
       background-color: #005f80;
     }
 
-    .checkbox-container {
-      text-align: left;
-      margin-bottom: 10px;
+    #showPasswordButton {
+      background-color: #f1f1f1;
+      color: #0077b6;
+      border: 1px solid #0077b6;
+      width: auto;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #showPasswordButton:hover {
+      background-color: #cce6ff;
     }
   </style>
 </head>
@@ -77,10 +86,7 @@
     <h1>Staff Login</h1>
     <input type="text" id="loginUsername" placeholder="Username" required />
     <input type="password" id="loginPassword" placeholder="Password" required />
-    <div class="checkbox-container">
-      <input type="checkbox" id="showPassword" />
-      <label for="showPassword">Show Password</label>
-    </div>
+    <button id="showPasswordButton">Show Password</button>
     <button class="button" id="loginBtn">Login</button>
   </div>
 
@@ -116,11 +122,15 @@
 
     const loginContainer = document.getElementById("loginContainer");
     const mainContent = document.getElementById("mainContent");
-    const showPasswordCheckbox = document.getElementById("showPassword");
+    const showPasswordButton = document.getElementById("showPasswordButton");
 
     const passwordInput = document.getElementById("loginPassword");
-    showPasswordCheckbox.addEventListener("change", () => {
-      passwordInput.type = showPasswordCheckbox.checked ? "text" : "password";
+    let passwordVisible = false;
+
+    showPasswordButton.addEventListener("click", () => {
+      passwordVisible = !passwordVisible;
+      passwordInput.type = passwordVisible ? "text" : "password";
+      showPasswordButton.textContent = passwordVisible ? "Hide Password" : "Show Password";
     });
 
     const db = getDatabase();
