@@ -1,207 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Staff Registration</title>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-  <script type="module" src="firebase-config.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #e0f7ff;
-      padding: 20px;
-      text-align: center;
-    }
-
-    h1 {
-      color: #0077b6;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .room-info {
-      background-color: #0077b6;
-      color: white;
-      font-weight: bold;
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 20px;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .form-container {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      max-width: 400px;
-      margin: auto;
-    }
-
-    input, select, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    .button {
-      background-color: #0096c7;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    .button:hover {
-      background-color: #005f80;
-    }
-
-    #showPasswordButton {
-      background-color: #f1f1f1;
-      color: #0077b6;
-      border: 1px solid #0077b6;
-      width: auto;
-      padding: 5px 10px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    #showPasswordButton:hover {
-      background-color: #cce6ff;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="form-container" id="loginContainer">
-    <h1>Staff Login</h1>
-    <input type="text" id="loginUsername" placeholder="Username" required />
-    <input type="password" id="loginPassword" placeholder="Password" required />
-    <button id="showPasswordButton">Show Password</button>
-    <button class="button" id="loginBtn">Login</button>
-  </div>
-
-  <div class="hidden" id="mainContent">
-    <h1>Staff Registration</h1>
-    <div class="room-info" id="room-info">Fetching Room Info...</div>
-    <div class="form-container">
-      <form id="staffForm">
-        <input type="email" id="email" placeholder="E-mail" required>
-        <input type="text" id="lastname" placeholder="Last Name" required>
-        <input type="text" id="firstname" placeholder="First Name" required>
-        <input type="text" id="middlename" placeholder="Middle Name (Optional)">
-        <input type="text" id="nameext" placeholder="Name Extension (Optional)">
-
-        <label for="timeStatus">Select Time In/Out:</label>
-        <select id="timeStatus" required>
-          <option value="Time In">Time In</option>
-          <option value="Time Out">Time Out</option>
-        </select>
-
-        <label for="purpose">Purpose of Visit:</label>
-        <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
-
-        <input type="text" id="validIDNumber" placeholder="Enter Valid ID Number" required>
-
-        <button type="button" class="button" id="submitBtn">Enter</button>
-      </form>
-    </div>
-  </div>
-
-  <script type="module">
-    import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-
-    const loginContainer = document.getElementById("loginContainer");
-    const mainContent = document.getElementById("mainContent");
-    const showPasswordButton = document.getElementById("showPasswordButton");
-
-    const passwordInput = document.getElementById("loginPassword");
-    let passwordVisible = false;
-
-    showPasswordButton.addEventListener("click", () => {
-      passwordVisible = !passwordVisible;
-      passwordInput.type = passwordVisible ? "text" : "password";
-      showPasswordButton.textContent = passwordVisible ? "Hide Password" : "Show Password";
-    });
-
-    const db = getDatabase();
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const inputUsername = document.getElementById("loginUsername").value;
-      const inputPassword = document.getElementById("loginPassword").value;
-
-      const staffRef = ref(db, "staff");
-      const snapshot = await get(staffRef);
-
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        if (data.u_name === inputUsername && data.p_word === inputPassword) {
-          sessionStorage.setItem("loggedIn", "true");
-          loginContainer.classList.add("hidden");
-          mainContent.classList.remove("hidden");
-        } else {
-          alert("Incorrect username or password.");
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff Registration</title>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #e0f7ff;
+            text-align: center;
         }
-      } else {
-        alert("No account data found.");
-      }
-    });
 
-    // Show room info
-    const roomName = localStorage.getItem("scannedRoom");
-    const floorName = localStorage.getItem("scannedFloor");
-    const roomInfo = document.getElementById("room-info");
-    roomInfo.innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
+        h1 {
+            color: #0077b6;
+        }
 
-    function getPHTTimestamp() {
-      return new Date().toISOString().replace("Z", "+08:00");
-    }
+        .room-info {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #ffffff;
+            font-weight: bold;
+            background-color: #0077b6;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 400px;
+        }
 
-    document.getElementById("submitBtn").addEventListener("click", () => {
-      const email = document.getElementById("email").value;
-      const lastname = document.getElementById("lastname").value;
-      const firstname = document.getElementById("firstname").value;
-      const middlename = document.getElementById("middlename").value;
-      const nameext = document.getElementById("nameext").value;
-      const timeStatus = document.getElementById("timeStatus").value;
-      const purpose = document.getElementById("purpose").value;
-      const validIDNumber = document.getElementById("validIDNumber").value;
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+        }
 
-      if (!email || !lastname || !firstname || !validIDNumber) {
-        alert("Please fill in all required fields.");
-        return;
-      }
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
 
-      const dbRef = ref(db, "staff_log");
-      push(dbRef, {
-        email, lastname, firstname, middlename, nameext,
-        room: roomName, floor: floorName, timeStatus, purpose,
-        validIDNumber, timestamp: getPHTTimestamp()
-      });
+        .button {
+            background-color: #0096c7;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
 
-      alert("Entry submitted successfully!");
-      document.getElementById("staffForm").reset();
-    });
+        .button:hover {
+            background-color: #005f80;
+        }
 
-    // Auto logout
-    window.addEventListener("beforeunload", () => {
-      sessionStorage.removeItem("loggedIn");
-    });
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 55px;
+            cursor: pointer;
+        }
 
-    // Redirect if not logged in
-    if (sessionStorage.getItem("loggedIn") !== "true") {
-      loginContainer.classList.remove("hidden");
-      mainContent.classList.add("hidden");
-    }
-  </script>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Section -->
+    <div id="loginContainer" class="form-container">
+        <h1>Login</h1>
+        <input type="text" id="loginUsername" placeholder="Username" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <span class="toggle-password" id="togglePassword">&#x1F441;</span>
+        <button type="button" class="button" id="loginBtn">Login</button>
+    </div>
+
+    <!-- Main Content Section (Hidden by default) -->
+    <div id="mainContent" class="hidden">
+        <h1>Staff Registration</h1>
+        <div class="room-info" id="room-info">Fetching Room Info...</div>
+        <div class="form-container">
+            <form id="guestForm">
+                <input type="email" id="email" placeholder="E-mail" required>
+                <input type="text" id="lastname" placeholder="Last Name" required>
+                <input type="text" id="firstname" placeholder="First Name" required>
+                <input type="text" id="middlename" placeholder="Middle Name (Optional)">
+                <input type="text" id="nameext" placeholder="Name Extension (Optional)">
+
+                <label for="timeStatus">Select Time In/Out:</label>
+                <select id="timeStatus" required>
+                    <option value="Time In">Time In</option>
+                    <option value="Time Out">Time Out</option>
+                </select>
+
+                <label for="purpose">Purpose of Visit:</label>
+                <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
+
+                <input type="text" id="validIDNumber" placeholder="Enter Valid ID Number" required>
+
+                <button type="button" class="button" id="submitBtn">Enter</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { app, db } from "./firebase-config.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        const loginContainer = document.getElementById("loginContainer");
+        const mainContent = document.getElementById("mainContent");
+        const togglePassword = document.getElementById("togglePassword");
+        const loginBtn = document.getElementById("loginBtn");
+        const loginUsername = document.getElementById("loginUsername");
+        const loginPassword = document.getElementById("loginPassword");
+
+        // Toggle password visibility
+        togglePassword.addEventListener("click", () => {
+            const type = loginPassword.type === "password" ? "text" : "password";
+            loginPassword.type = type;
+            togglePassword.textContent = type === "password" ? "👁️" : "🙈";
+        });
+
+        loginBtn.addEventListener("click", async () => {
+            const inputUsername = loginUsername.value;
+            const inputPassword = loginPassword.value;
+
+            // Reference to the 'accounts/staff' node in the database
+            const staffRef = ref(db, "accounts/staff");
+
+            // Retrieve the account data from Firebase
+            const snapshot = await get(staffRef);
+
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+
+                // Check if the username and password match
+                if (data.u_name === inputUsername && data.p_word === inputPassword) {
+                    sessionStorage.setItem("loggedIn", "true");
+                    loginContainer.classList.add("hidden");
+                    mainContent.classList.remove("hidden");
+                } else {
+                    alert("Incorrect username or password.");
+                }
+            } else {
+                alert("No account data found.");
+            }
+        });
+
+        document.getElementById("submitBtn").addEventListener("click", async () => {
+            const email = document.getElementById("email").value;
+            const lastname = document.getElementById("lastname").value;
+            const firstname = document.getElementById("firstname").value;
+            const middlename = document.getElementById("middlename").value;
+            const nameext = document.getElementById("nameext").value;
+            const timeStatus = document.getElementById("timeStatus").value;
+            const purpose = document.getElementById("purpose").value;
+            const validIDNumber = document.getElementById("validIDNumber").value;
+
+            if (!email || !lastname || !firstname || !validIDNumber) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            const dbRef = ref(getDatabase(), "staff");
+            push(dbRef, {
+                email,
+                lastname,
+                firstname,
+                middlename,
+                nameext,
+                timeStatus,
+                purpose,
+                validIDNumber,
+                timestamp: new Date().toISOString(),
+            });
+
+            alert("Entry submitted successfully!");
+            document.getElementById("guestForm").reset();
+        });
+    </script>
 </body>
 </html>
