@@ -10,12 +10,8 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       background-color: #e0f7ff;
+      padding: 20px;
       text-align: center;
     }
 
@@ -23,182 +19,144 @@
       color: #0077b6;
     }
 
+    .hidden {
+      display: none;
+    }
+
     .room-info {
-      font-size: 18px;
-      margin-bottom: 20px;
-      color: #ffffff;
-      font-weight: bold;
       background-color: #0077b6;
+      color: white;
+      font-weight: bold;
       padding: 10px;
       border-radius: 5px;
-      width: 100%;
+      margin-bottom: 20px;
       max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .form-container {
       background: white;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      width: 100%;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       max-width: 400px;
-      display: flex;
-      flex-direction: column;
+      margin: auto;
     }
 
     input, select, textarea, button {
       width: 100%;
       padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
       margin-bottom: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
     .button {
       background-color: #0096c7;
       color: white;
-      font-size: 18px;
       border: none;
       cursor: pointer;
-      transition: background 0.3s;
     }
 
     .button:hover {
       background-color: #005f80;
     }
 
-    .hidden {
-      display: none;
-    }
-
-    .show-password {
-      margin-bottom: 10px;
+    .checkbox-container {
       text-align: left;
-    }
-
-    .show-password label {
-      font-size: 14px;
-      cursor: pointer;
+      margin-bottom: 10px;
     }
   </style>
 </head>
-
 <body>
-  <h1>Staff Registration</h1>
 
-  <!-- Login Form -->
-  <div class="form-container" id="loginForm">
+  <div class="form-container" id="loginContainer">
+    <h1>Staff Login</h1>
     <input type="text" id="loginUsername" placeholder="Username" required />
     <input type="password" id="loginPassword" placeholder="Password" required />
-    
-    <div class="show-password">
-      <input type="checkbox" id="togglePassword" />
-      <label for="togglePassword">Show Password</label>
+    <div class="checkbox-container">
+      <input type="checkbox" id="showPassword" />
+      <label for="showPassword">Show Password</label>
     </div>
-
     <button class="button" id="loginBtn">Login</button>
   </div>
 
-  <!-- Room Info -->
-  <div class="room-info hidden" id="room-info">Fetching Room Info...</div>
+  <div class="hidden" id="mainContent">
+    <h1>Staff Registration</h1>
+    <div class="room-info" id="room-info">Fetching Room Info...</div>
+    <div class="form-container">
+      <form id="staffForm">
+        <input type="email" id="email" placeholder="E-mail" required>
+        <input type="text" id="lastname" placeholder="Last Name" required>
+        <input type="text" id="firstname" placeholder="First Name" required>
+        <input type="text" id="middlename" placeholder="Middle Name (Optional)">
+        <input type="text" id="nameext" placeholder="Name Extension (Optional)">
 
-  <!-- Staff Registration Form -->
-  <div class="form-container hidden" id="staffFormContainer">
-    <form id="staffForm">
-      <input type="email" id="email" placeholder="E-mail" required>
-      <input type="text" id="lastname" placeholder="Last Name" required>
-      <input type="text" id="firstname" placeholder="First Name" required>
-      <input type="text" id="middlename" placeholder="Middle Name (Optional)">
-      <input type="text" id="nameext" placeholder="Name Extension (Optional)">
+        <label for="timeStatus">Select Time In/Out:</label>
+        <select id="timeStatus" required>
+          <option value="Time In">Time In</option>
+          <option value="Time Out">Time Out</option>
+        </select>
 
-      <label for="timeStatus">Select Time In/Out:</label>
-      <select id="timeStatus" required>
-        <option value="Time In">Time In</option>
-        <option value="Time Out">Time Out</option>
-      </select>
+        <label for="purpose">Purpose of Visit:</label>
+        <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
 
-      <label for="purpose">Purpose of Visit:</label>
-      <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
+        <input type="text" id="validIDNumber" placeholder="Enter Valid ID Number" required>
 
-      <input type="text" id="validIDNumber" placeholder="Enter Valid ID Number" required>
-
-      <button type="button" class="button" id="submitBtn">Enter</button>
-    </form>
+        <button type="button" class="button" id="submitBtn">Enter</button>
+      </form>
+    </div>
   </div>
 
   <script type="module">
-    import { app, db } from "./firebase-config.js";
-    import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-    const loginForm = document.getElementById("loginForm");
-    const staffFormContainer = document.getElementById("staffFormContainer");
-    const roomInfo = document.getElementById("room-info");
+    const loginContainer = document.getElementById("loginContainer");
+    const mainContent = document.getElementById("mainContent");
+    const showPasswordCheckbox = document.getElementById("showPassword");
 
+    const passwordInput = document.getElementById("loginPassword");
+    showPasswordCheckbox.addEventListener("change", () => {
+      passwordInput.type = showPasswordCheckbox.checked ? "text" : "password";
+    });
+
+    const db = getDatabase();
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const inputUsername = document.getElementById("loginUsername").value;
+      const inputPassword = document.getElementById("loginPassword").value;
+
+      const staffRef = ref(db, "staff");
+      const snapshot = await get(staffRef);
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        if (data.u_name === inputUsername && data.p_word === inputPassword) {
+          sessionStorage.setItem("loggedIn", "true");
+          loginContainer.classList.add("hidden");
+          mainContent.classList.remove("hidden");
+        } else {
+          alert("Incorrect username or password.");
+        }
+      } else {
+        alert("No account data found.");
+      }
+    });
+
+    // Show room info
     const roomName = localStorage.getItem("scannedRoom");
     const floorName = localStorage.getItem("scannedFloor");
+    const roomInfo = document.getElementById("room-info");
     roomInfo.innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
 
     function getPHTTimestamp() {
       return new Date().toISOString().replace("Z", "+08:00");
     }
 
-    // Auto logout on page unload
-    window.addEventListener("beforeunload", () => {
-      sessionStorage.removeItem("isLoggedIn");
-    });
-
-    // Show/hide password
-    document.getElementById("togglePassword").addEventListener("change", () => {
-      const passwordInput = document.getElementById("loginPassword");
-      passwordInput.type = passwordInput.type === "password" ? "text" : "password";
-    });
-
-    // Show main form if already logged in
-    if (sessionStorage.getItem("isLoggedIn") === "true") {
-      loginForm.classList.add("hidden");
-      staffFormContainer.classList.remove("hidden");
-      roomInfo.classList.remove("hidden");
-    }
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const username = document.getElementById("loginUsername").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
-
-      if (!username || !password) {
-        alert("Please enter both username and password.");
-        return;
-      }
-
-      const dbRef = ref(getDatabase());
-      try {
-        const snapshot = await get(child(dbRef, "staff/accounts"));
-        if (snapshot.exists()) {
-          const accounts = snapshot.val();
-          const isValid = Object.values(accounts).some(
-            acc => acc.u_name === username && acc.p_word === password
-          );
-
-          if (isValid) {
-            alert("Login successful!");
-            sessionStorage.setItem("isLoggedIn", "true");
-            loginForm.classList.add("hidden");
-            staffFormContainer.classList.remove("hidden");
-            roomInfo.classList.remove("hidden");
-          } else {
-            alert("Invalid username or password.");
-          }
-        } else {
-          alert("No accounts found.");
-        }
-      } catch (error) {
-        console.error("Error fetching accounts:", error);
-        alert("Error checking credentials.");
-      }
-    });
-
-    document.getElementById("submitBtn").addEventListener("click", async () => {
+    document.getElementById("submitBtn").addEventListener("click", () => {
       const email = document.getElementById("email").value;
       const lastname = document.getElementById("lastname").value;
       const firstname = document.getElementById("firstname").value;
@@ -213,24 +171,27 @@
         return;
       }
 
-      const dbRef = ref(getDatabase(), "staff");
+      const dbRef = ref(db, "staff_log");
       push(dbRef, {
-        email,
-        lastname,
-        firstname,
-        middlename,
-        nameext,
-        room: roomName,
-        floor: floorName,
-        timeStatus,
-        purpose,
-        validIDNumber,
-        timestamp: getPHTTimestamp()
+        email, lastname, firstname, middlename, nameext,
+        room: roomName, floor: floorName, timeStatus, purpose,
+        validIDNumber, timestamp: getPHTTimestamp()
       });
 
       alert("Entry submitted successfully!");
       document.getElementById("staffForm").reset();
     });
+
+    // Auto logout
+    window.addEventListener("beforeunload", () => {
+      sessionStorage.removeItem("loggedIn");
+    });
+
+    // Redirect if not logged in
+    if (sessionStorage.getItem("loggedIn") !== "true") {
+      loginContainer.classList.remove("hidden");
+      mainContent.classList.add("hidden");
+    }
   </script>
 </body>
 </html>
