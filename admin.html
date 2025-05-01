@@ -3,177 +3,146 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Super Admin Login</title>
+  <title>Super Admin Dashboard</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
- <style>
-  html {
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f4f8;
-    margin: 0;
-    padding: 20px;
-  }
-
-  h1 {
-    text-align: center;
-    color: #0077b6;
-    margin-bottom: 20px;
-  }
-
-  .login-container,
-  .dashboard {
-    max-width: 500px;
-    margin: 0 auto;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-  }
-
-  .login-container input,
-  .filters select,
-  .filters input {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box;
-  }
-
-  button {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    background-color: #0077b6;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    box-sizing: border-box;
-  }
-
-  button:hover {
-    background-color: #005f80;
-  }
-
-  .filters {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-
-  @media (min-width: 600px) {
-    .filters {
-      flex-direction: row;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      padding: 20px;
     }
-  }
-
-  .record {
-    background: #eef9ff;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    box-sizing: border-box;
-  }
-
-  .record img {
-    max-width: 100%;
-    height: auto;
-    margin-top: 10px;
-    border-radius: 4px;
-  }
-</style>
-
+    h1 {
+      color: #0077b6;
+      text-align: center;
+    }
+    .login-form, .filters, .records-container {
+      display: none;
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    select {
+      padding: 10px;
+      font-size: 16px;
+    }
+    .record {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .record img {
+      max-width: 100px;
+      display: block;
+      margin-top: 10px;
+    }
+    .login-form input {
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 300px;
+    }
+    .button {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #0077b6;
+      color: white;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
 
-  <h1>Super Admin</h1>
+  <h1>Super Admin Dashboard</h1>
 
-  <div class="login-container" id="loginContainer">
+  <!-- Login Form -->
+  <div class="login-form" id="loginForm">
+    <h2>Login</h2>
     <input type="text" id="username" placeholder="Username" required />
     <input type="password" id="password" placeholder="Password" required />
-    <button id="loginBtn">Login</button>
-    <p id="loginError" style="color:red;"></p>
+    <button class="button" id="loginBtn">Login</button>
+    <p id="errorMessage" style="color: red; display: none;">Invalid username or password</p>
   </div>
 
-  <div class="dashboard" id="dashboard" style="display:none;">
-    <div class="filters">
-      <select id="userType">
-        <option value="staff">Staff</option>
-        <option value="student">Student</option>
-        <option value="guest">Guest</option>
-      </select>
-      <select id="timeFilter">
-        <option value="all">All</option>
-        <option value="Time In">Time In</option>
-        <option value="Time Out">Time Out</option>
-      </select>
-    </div>
-    <div id="recordsContainer"></div>
+  <!-- Filters and Records -->
+  <div class="filters" id="filters">
+    <select id="userType">
+      <option value="staff">Staff</option>
+      <option value="student">Student</option>
+      <option value="guest">Guest</option>
+    </select>
+    <select id="timeFilter">
+      <option value="all">All</option>
+      <option value="Time In">Time In</option>
+      <option value="Time Out">Time Out</option>
+    </select>
   </div>
+
+  <div id="recordsContainer" class="records-container"></div>
 
   <script type="module">
     import { db } from "./firebase-config.js";
-    import {
-      getDatabase,
-      ref,
-      onValue,
-      get,
-      child
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
+    // Elements
+    const loginForm = document.getElementById("loginForm");
+    const filters = document.getElementById("filters");
+    const recordsContainer = document.getElementById("recordsContainer");
+    const usernameEl = document.getElementById("username");
+    const passwordEl = document.getElementById("password");
     const loginBtn = document.getElementById("loginBtn");
-    const loginError = document.getElementById("loginError");
+    const errorMessageEl = document.getElementById("errorMessage");
+    const userTypeEl = document.getElementById("userType");
+    const timeFilterEl = document.getElementById("timeFilter");
 
+    // Show login form initially
+    loginForm.style.display = "block";
+    filters.style.display = "none";
+    recordsContainer.style.display = "none";
+
+    // Handle login
     loginBtn.addEventListener("click", async () => {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
+      const username = usernameEl.value;
+      const password = passwordEl.value;
 
-      if (!username || !password) {
-        loginError.innerText = "Please fill in both fields.";
-        return;
-      }
+      if (username && password) {
+        const dbRef = ref(getDatabase(), `accounts/${username}`);
+        const snapshot = await get(dbRef);
+        const account = snapshot.val();
 
-      const dbRef = ref(getDatabase());
-      const snap = await get(child(dbRef, `accounts/admin`));
-
-      if (snap.exists()) {
-        const data = snap.val();
-        if (username === data.u_name && password === data.p_word) {
-          document.getElementById("loginContainer").style.display = "none";
-          document.getElementById("dashboard").style.display = "block";
-          fetchAndRenderData();
+        if (account && account.u_name === username && account.p_word === password) {
+          // Valid login, show filters and records
+          loginForm.style.display = "none";
+          filters.style.display = "block";
+          recordsContainer.style.display = "block";
+          errorMessageEl.style.display = "none";
+          fetchAndRenderData();  // Fetch data after login
         } else {
-          loginError.innerText = "Incorrect username or password.";
+          // Invalid credentials
+          errorMessageEl.style.display = "block";
         }
       } else {
-        loginError.innerText = "Admin credentials not found.";
+        errorMessageEl.style.display = "block";
       }
     });
 
-    const userTypeEl = document.getElementById("userType");
-    const timeFilterEl = document.getElementById("timeFilter");
-    const recordsContainer = document.getElementById("recordsContainer");
-
+    // Fetch and render data based on filters
     userTypeEl.addEventListener("change", fetchAndRenderData);
     timeFilterEl.addEventListener("change", fetchAndRenderData);
 
     function fetchAndRenderData() {
       const userType = userTypeEl.value;
       const timeFilter = timeFilterEl.value;
+
       const dbRef = ref(getDatabase(), userType);
 
       onValue(dbRef, (snapshot) => {
@@ -181,6 +150,7 @@
         const data = snapshot.val();
         if (data) {
           const entries = Object.entries(data);
+
           entries.forEach(([key, entry]) => {
             if (timeFilter === "all" || entry.timeStatus === timeFilter) {
               const div = document.createElement("div");
