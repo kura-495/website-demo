@@ -110,7 +110,7 @@
         <label for="purpose">Purpose of Visit:</label>
         <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
 
-        <input type="text" id="validIDNumber" placeholder="Enter Valid ID Number" required>
+        <input type="text" id="validID" placeholder="Enter Valid ID Number" required>
 
         <button type="button" class="button" id="submitBtn">Enter</button>
       </form>
@@ -176,7 +176,7 @@
       const nameext = document.getElementById("nameext").value;
       const timeStatus = document.getElementById("timeStatus").value;
       const purpose = document.getElementById("purpose").value;
-      const validIDNumber = document.getElementById("validID").value;
+      const validID = document.getElementById("validID").value;
 
       if (!email || !lastname || !firstname || !validID) {
         alert("Please fill in all required fields.");
