@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>B</title>
+  <title>C</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -194,9 +194,18 @@
               selectedStatus === 'all' ||
               (entry.timeStatus && entry.timeStatus === selectedStatus)
             ) {
+              const date = entry.timestamp ? new Date(entry.timestamp) : null;
+              const formattedDate = date
+                ? `${date.getDate().toString().padStart(2, '0')} ${date.toLocaleString('en-US', {
+                    month: 'long'
+                  })} ${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date
+                    .getMinutes()
+                    .toString()
+                    .padStart(2, '0')}`
+                : 'N/A';
+
               const recordDiv = document.createElement('div');
               recordDiv.className = 'record';
-               const timestamp = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A';
               recordDiv.innerHTML = `
                 <strong>User Type:</strong> ${type}<br>
                 <strong>Email:</strong> ${entry.email || 'N/A'}<br>
@@ -205,9 +214,9 @@
                 <strong>Room:</strong> ${entry.room || 'N/A'}<br>
                 <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
                 <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
-                <strong>Timestamp:</strong> ${entry.timestamp || 'N/A'}<br>
-                ${entry.validID ? `<strong>Valid ID:</strong><br>${type === 'staff' ? entry.validID : `<img src="${entry.validID}" />`}` 
-: ''}`;
+                <strong>Timestamp:</strong> ${formattedDate}<br>
+                ${entry.validID ? `<strong>Valid ID:</strong><br>${type === 'staff' ? entry.validID : `<img src="${entry.validID}" />`}` : ''}
+              `;
               recordsContainer.appendChild(recordDiv);
             }
           });
