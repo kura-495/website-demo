@@ -10,71 +10,46 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f4f8;
+      background-color: #e0f7ff;
       padding: 20px;
+      text-align: center;
     }
 
     h1 {
       color: #0077b6;
-      text-align: center;
     }
 
-    .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      justify-content: center;
+    .hidden {
+      display: none;
     }
 
-    select {
-      padding: 10px;
-      font-size: 16px;
-    }
-
-    .record {
+    .form-container {
       background: white;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .record img {
-      max-width: 100px;
-      display: block;
-      margin-top: 10px;
-    }
-
-    .login-container {
-      max-width: 400px;
-      margin: 50px auto;
-      background: #ffffff;
-      padding: 30px;
+      padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      max-width: 400px;
+      margin: auto;
     }
 
-    .login-container input {
+    input, select, textarea, button {
       width: 100%;
       padding: 10px;
+      margin-bottom: 10px;
       font-size: 16px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
       border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
-    .login-container button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #0077b6;
+    .button {
+      background-color: #0096c7;
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
     }
 
-    .login-container button:hover {
+    .button:hover {
       background-color: #005f80;
     }
 
@@ -91,19 +66,44 @@
     #showPasswordButton:hover {
       background-color: #cce6ff;
     }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .record {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: left;
+      max-width: 800px;
+      margin: 10px auto;
+    }
+
+    .record img {
+      max-width: 100px;
+      display: block;
+      margin-top: 10px;
+    }
   </style>
 </head>
-
 <body>
-  <div id="loginSection" class="login-container">
-    <h2>Super Admin Login</h2>
+
+  <!-- Login Section -->
+  <div class="form-container" id="loginSection">
+    <h1>Super Admin Login</h1>
     <input type="text" id="username" placeholder="Username" required />
     <input type="password" id="password" placeholder="Password" required />
     <button id="showPasswordButton">Show Password</button>
-    <br><br>
-    <button onclick="login()">Login</button>
+    <button class="button" onclick="login()">Login</button>
   </div>
 
+  <!-- Dashboard Section -->
   <div id="dashboardSection" style="display: none;">
     <h1>Super Admin Dashboard</h1>
 
