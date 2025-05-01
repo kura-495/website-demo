@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Super Admin Dashboard</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
@@ -13,20 +13,24 @@
       background-color: #f0f4f8;
       padding: 20px;
     }
+
     h1 {
       color: #0077b6;
       text-align: center;
     }
+
     .filters {
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
       justify-content: center;
     }
+
     select {
       padding: 10px;
       font-size: 16px;
     }
+
     .record {
       background: white;
       padding: 15px;
@@ -34,11 +38,46 @@
       margin-bottom: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
+
     .record img {
       max-width: 100px;
       display: block;
       margin-top: 10px;
     }
+
+    .login-container {
+      max-width: 400px;
+      margin: 50px auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .login-container button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0077b6;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .login-container button:hover {
+      background-color: #005f80;
+    }
+
     #showPasswordButton {
       background-color: #f1f1f1;
       color: #0077b6;
@@ -48,135 +87,131 @@
       cursor: pointer;
       margin-top: 10px;
     }
+
     #showPasswordButton:hover {
       background-color: #cce6ff;
     }
-    .login-form {
-      max-width: 400px;
-      margin: 50px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-    .login-form input, .login-form button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      font-size: 16px;
-    }
-    .button {
-      background-color: #0077b6;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .button:hover {
-      background-color: #005f80;
-    }
   </style>
 </head>
+
 <body>
-  <div class="login-form" id="loginForm">
-    <h2>Login</h2>
+  <div id="loginSection" class="login-container">
+    <h2>Super Admin Login</h2>
     <input type="text" id="username" placeholder="Username" required />
     <input type="password" id="password" placeholder="Password" required />
-    <button id="showPasswordButton" type="button">Show Password</button>
-    <br />
-    <button class="button" id="loginBtn">Login</button>
-    <p id="errorMessage" style="color: red; display: none;">Invalid username or password</p>
+    <button id="showPasswordButton">Show Password</button>
+    <br><br>
+    <button onclick="login()">Login</button>
   </div>
 
-  <div id="dashboard" style="display:none">
+  <div id="dashboardSection" style="display: none;">
     <h1>Super Admin Dashboard</h1>
+
     <div class="filters">
       <select id="userTypeFilter">
+        <option value="all">All Users</option>
         <option value="staff">Staff</option>
         <option value="student">Student</option>
         <option value="guest">Guest</option>
       </select>
+
       <select id="timeStatusFilter">
-        <option value="all">All</option>
+        <option value="all">All Status</option>
         <option value="Time In">Time In</option>
         <option value="Time Out">Time Out</option>
       </select>
     </div>
+
     <div id="recordsContainer"></div>
   </div>
 
   <script type="module">
-    import { app, db } from "./firebase-config.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { app, db } from './firebase-config.js';
+    import {
+      getDatabase,
+      ref,
+      get,
+      child
+    } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
 
-    const dbRef = getDatabase();
+    const loginSection = document.getElementById('loginSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const recordsContainer = document.getElementById('recordsContainer');
+    const userTypeFilter = document.getElementById('userTypeFilter');
+    const timeStatusFilter = document.getElementById('timeStatusFilter');
+    const showPasswordButton = document.getElementById('showPasswordButton');
+    const passwordInput = document.getElementById('password');
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
+    showPasswordButton.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
+    });
 
-      const accRef = ref(dbRef, "accounts/admin");
-      onValue(accRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data && data.u_name === username && data.p_word === password) {
-          document.getElementById("loginForm").style.display = "none";
-          document.getElementById("dashboard").style.display = "block";
-          loadRecords();
+    window.login = async function () {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      const dbRef = ref(getDatabase());
+      try {
+        const snapshot = await get(child(dbRef, `accounts/admin`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (username === data.u_name && password === data.p_word) {
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            fetchData(); // Fetch data after login
+          } else {
+            alert('Incorrect username or password');
+          }
         } else {
-          document.getElementById("errorMessage").style.display = "block";
+          alert('Admin credentials not found in database.');
         }
-      }, {
-        onlyOnce: true
-      });
-    });
-
-    document.getElementById("showPasswordButton").addEventListener("click", () => {
-      const passwordInput = document.getElementById("password");
-      const button = document.getElementById("showPasswordButton");
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        button.textContent = "Hide Password";
-      } else {
-        passwordInput.type = "password";
-        button.textContent = "Show Password";
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again later.');
       }
-    });
+    };
 
-    document.getElementById("userTypeFilter").addEventListener("change", loadRecords);
-    document.getElementById("timeStatusFilter").addEventListener("change", loadRecords);
+    userTypeFilter.addEventListener('change', fetchData);
+    timeStatusFilter.addEventListener('change', fetchData);
 
-    function loadRecords() {
-      const userType = document.getElementById("userTypeFilter").value;
-      const timeStatusFilter = document.getElementById("timeStatusFilter").value;
-      const container = document.getElementById("recordsContainer");
-      container.innerHTML = "Loading...";
+    async function fetchData() {
+      recordsContainer.innerHTML = '';
+      const selectedUser = userTypeFilter.value;
+      const selectedStatus = timeStatusFilter.value;
 
-      const recordsRef = ref(dbRef, userType);
-      onValue(recordsRef, (snapshot) => {
-        const data = snapshot.val();
-        container.innerHTML = "";
-        if (data) {
+      const types = ['staff', 'student', 'guest'];
+      const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
+
+      for (const type of fetchTypes) {
+        const dbRef = ref(getDatabase(), type);
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
           Object.values(data).forEach((entry) => {
-            if (timeStatusFilter === "all" || entry.timeStatus === timeStatusFilter) {
-              const recordDiv = document.createElement("div");
-              recordDiv.className = "record";
+            if (
+              selectedStatus === 'all' ||
+              (entry.timeStatus && entry.timeStatus === selectedStatus)
+            ) {
+              const recordDiv = document.createElement('div');
+              recordDiv.className = 'record';
               recordDiv.innerHTML = `
-                <strong>Name:</strong> ${entry.firstname} ${entry.middlename || ""} ${entry.lastname} ${entry.nameext || ""}<br>
-                <strong>Email:</strong> ${entry.email}<br>
-                <strong>Room:</strong> ${entry.room}<br>
-                <strong>Floor:</strong> ${entry.floor}<br>
-                <strong>Time Status:</strong> ${entry.timeStatus}<br>
-                <strong>Purpose:</strong> ${entry.purpose}<br>
-                <strong>Timestamp:</strong> ${entry.timestamp}<br>
-                ${entry.validID ? `<img src="${entry.validID}" alt="Valid ID" />` : ""}
+                <strong>User Type:</strong> ${type}<br>
+                <strong>Email:</strong> ${entry.email || 'N/A'}<br>
+                <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
+                <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
+                <strong>Room:</strong> ${entry.room || 'N/A'}<br>
+                <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
+                <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
+                <strong>Timestamp:</strong> ${entry.timestamp || 'N/A'}<br>
+                ${entry.validID ? `<strong>Valid ID:</strong><br><img src="${entry.validID}" />` : ''}
               `;
-              container.appendChild(recordDiv);
+              recordsContainer.appendChild(recordDiv);
             }
           });
-        } else {
-          container.innerHTML = "No records found.";
         }
-      });
+      }
     }
   </script>
 </body>
