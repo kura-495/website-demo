@@ -9,58 +9,49 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
  <style>
-  html {
+  * {
     box-sizing: border-box;
   }
 
   body {
     font-family: Arial, sans-serif;
     background-color: #f0f4f8;
-    margin: 0;
     padding: 20px;
   }
 
   h1 {
-    text-align: center;
     color: #0077b6;
-    margin-bottom: 20px;
+    text-align: center;
   }
 
-  .login-container,
-  .dashboard {
+  .login-container, .dashboard {
     max-width: 500px;
-    margin: 0 auto;
-    background-color: #fff;
+    margin: auto;
+    background: white;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
 
   .login-container input,
-  .filters select,
-  .filters input {
-    display: block;
+  .filters select {
     width: 100%;
     padding: 10px;
-    margin-bottom: 12px;
     font-size: 16px;
+    margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
-    box-sizing: border-box;
   }
 
   button {
-    width: 100%;
-    padding: 12px;
+    padding: 10px 20px;
     font-size: 16px;
     background-color: #0077b6;
-    color: #fff;
+    color: white;
     border: none;
-    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s;
-    box-sizing: border-box;
+    width: 100%;
+    border-radius: 6px;
   }
 
   button:hover {
@@ -70,7 +61,7 @@
   .filters {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 20px;
   }
 
@@ -82,19 +73,16 @@
 
   .record {
     background: #eef9ff;
-    padding: 12px;
-    border-radius: 8px;
+    padding: 10px;
+    border-radius: 6px;
     margin-bottom: 10px;
     word-wrap: break-word;
-    overflow-wrap: break-word;
-    box-sizing: border-box;
   }
 
   .record img {
-    max-width: 100%;
-    height: auto;
+    max-width: 100px;
+    display: block;
     margin-top: 10px;
-    border-radius: 4px;
   }
 </style>
 
