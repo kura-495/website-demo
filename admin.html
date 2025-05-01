@@ -115,7 +115,7 @@
       const password = passwordEl.value;
 
       if (username && password) {
-        const dbRef = ref(getDatabase(), `accounts/${username}`);
+        const dbRef = ref(getDatabase(), `accounts/admin`);
         const snapshot = await get(dbRef);
         const account = snapshot.val();
 
