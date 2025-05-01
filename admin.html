@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Super Admin Dashboard</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script type="module" src="firebase-config.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      padding: 20px;
+    }
+    h1 {
+      color: #0077b6;
+      text-align: center;
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    select {
+      padding: 10px;
+      font-size: 16px;
+    }
+    .record {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .record img {
+      max-width: 100px;
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Super Admin Dashboard</h1>
+
+  <div class="filters">
+    <select id="userType">
+      <option value="staff">Staff</option>
+      <option value="student">Student</option>
+      <option value="guest">Guest</option>
+    </select>
+    <select id="timeFilter">
+      <option value="all">All</option>
+      <option value="Time In">Time In</option>
+      <option value="Time Out">Time Out</option>
+    </select>
+  </div>
+
+  <div id="recordsContainer"></div>
+
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import {
+      getDatabase,
+      ref,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const userTypeEl = document.getElementById("userType");
+    const timeFilterEl = document.getElementById("timeFilter");
+    const recordsContainer = document.getElementById("recordsContainer");
+
+    userTypeEl.addEventListener("change", fetchAndRenderData);
+    timeFilterEl.addEventListener("change", fetchAndRenderData);
+
+    function fetchAndRenderData() {
+      const userType = userTypeEl.value;
+      const timeFilter = timeFilterEl.value;
+
+      const dbRef = ref(getDatabase(), userType);
+
+      onValue(dbRef, (snapshot) => {
+        recordsContainer.innerHTML = "";
+        const data = snapshot.val();
+        if (data) {
+          const entries = Object.entries(data);
+
+          entries.forEach(([key, entry]) => {
+            if (timeFilter === "all" || entry.timeStatus === timeFilter) {
+              const div = document.createElement("div");
+              div.className = "record";
+              div.innerHTML = `
+                <strong>Email:</strong> ${entry.email || "N/A"}<br>
+                <strong>Name:</strong> ${entry.firstname || ""} ${entry.middlename || ""} ${entry.lastname || ""} ${entry.nameext || ""}<br>
+                <strong>Time:</strong> ${entry.timeStatus || "N/A"}<br>
+                <strong>Purpose:</strong> ${entry.purpose || "N/A"}<br>
+                <strong>Room:</strong> ${entry.room || "N/A"} (${entry.floor || "N/A"})<br>
+                <strong>Timestamp:</strong> ${entry.timestamp || "N/A"}<br>
+                ${entry.validID ? `<img src="${entry.validID}" alt="Valid ID"/>` : ""}
+              `;
+              recordsContainer.appendChild(div);
+            }
+          });
+        } else {
+          recordsContainer.innerHTML = "<p>No records found.</p>";
+        }
+      });
+    }
+
+    // Initial fetch
+    fetchAndRenderData();
+  </script>
+</body>
+</html>
