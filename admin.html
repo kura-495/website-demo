@@ -194,21 +194,19 @@
               selectedStatus === 'all' ||
               (entry.timeStatus && entry.timeStatus === selectedStatus)
             ) {
+              const recordDiv = document.createElement('div');
+              recordDiv.className = 'record';
               recordDiv.innerHTML = `
-  <strong>User Type:</strong> ${type}<br>
-  <strong>Email:</strong> ${entry.email || 'N/A'}<br>
-  <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
-  <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
-  <strong>Room:</strong> ${entry.room || 'N/A'}<br>
-  <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
-  <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
-  <strong>Timestamp:</strong> ${entry.timestamp || 'N/A'}<br>
-  ${entry.validID ? 
-    `<strong>Valid ID:</strong><br>${
-      type === 'staff' ? entry.validID : `<img src="${entry.validID}" />`
-    }` 
-  : ''}
-`;
+                <strong>User Type:</strong> ${type}<br>
+                <strong>Email:</strong> ${entry.email || 'N/A'}<br>
+                <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
+                <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
+                <strong>Room:</strong> ${entry.room || 'N/A'}<br>
+                <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
+                <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
+                <strong>Timestamp:</strong> ${entry.timestamp || 'N/A'}<br>
+                ${entry.validID ? `<strong>Valid ID:</strong><br>${type === 'staff' ? entry.validID : `<img src="${entry.validID}" />`}` 
+: ''}`;
               recordsContainer.appendChild(recordDiv);
             }
           });
