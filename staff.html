@@ -183,7 +183,7 @@
         return;
       }
 
-      const dbRef = ref(db, "staff_log");
+      const dbRef = ref(db, "staff");
       push(dbRef, {
         email, lastname, firstname, middlename, nameext,
         room: roomName, floor: floorName, timeStatus, purpose,
