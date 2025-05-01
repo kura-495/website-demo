@@ -7,59 +7,84 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f4f8;
-      padding: 20px;
-    }
-    h1 {
-      color: #0077b6;
-      text-align: center;
-    }
-    .login-container, .dashboard {
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .login-container input, .filters select {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      margin-bottom: 10px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #0077b6;
-      color: white;
-      border: none;
-      cursor: pointer;
-      width: 100%;
-    }
-    button:hover {
-      background-color: #005f80;
-    }
+ <style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f4f8;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #0077b6;
+    text-align: center;
+  }
+
+  .login-container, .dashboard {
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .login-container input,
+  .filters select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #0077b6;
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 6px;
+  }
+
+  button:hover {
+    background-color: #005f80;
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  @media (min-width: 600px) {
     .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+      flex-direction: row;
     }
-    .record {
-      background: #eef9ff;
-      padding: 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-    .record img {
-      max-width: 100px;
-      display: block;
-      margin-top: 10px;
-    }
-  </style>
+  }
+
+  .record {
+    background: #eef9ff;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+  }
+
+  .record img {
+    max-width: 100px;
+    display: block;
+    margin-top: 10px;
+  }
+</style>
+
 </head>
 <body>
 
