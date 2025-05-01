@@ -1,8 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script type="module" src="firebase-config.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -28,7 +33,7 @@
       margin: auto;
     }
 
-    input, select, button {
+    input, select, textarea, button {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
@@ -66,13 +71,8 @@
     .filters {
       display: flex;
       gap: 10px;
-      margin: 20px auto;
+      margin-bottom: 20px;
       justify-content: center;
-    }
-
-    select {
-      padding: 10px;
-      font-size: 16px;
     }
 
     .record {
@@ -83,8 +83,7 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       text-align: left;
       max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+      margin: 10px auto;
     }
 
     .record img {
@@ -96,15 +95,17 @@
 </head>
 <body>
 
-  <div class="form-container" id="loginContainer">
+  <!-- Login Section -->
+  <div class="form-container" id="loginSection">
     <h1>Admin Login</h1>
-    <input type="text" id="loginUsername" placeholder="Username" required />
-    <input type="password" id="loginPassword" placeholder="Password" required />
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="password" id="password" placeholder="Password" required />
     <button id="showPasswordButton">Show Password</button>
-    <button class="button" id="loginBtn">Login</button>
+    <button class="button" onclick="login()">Login</button>
   </div>
 
-  <div id="dashboard" class="hidden">
+  <!-- Dashboard Section -->
+  <div id="dashboardSection" style="display: none;">
     <h1>Admin Dashboard</h1>
 
     <div class="filters">
@@ -114,8 +115,9 @@
         <option value="student">Student</option>
         <option value="guest">Guest</option>
       </select>
+
       <select id="timeStatusFilter">
-        <option value="both">Both</option>
+        <option value="all">All Status</option>
         <option value="Time In">Time In</option>
         <option value="Time Out">Time Out</option>
       </select>
@@ -124,98 +126,88 @@
     <div id="recordsContainer"></div>
   </div>
 
-  <!-- Firebase JS SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script type="module">
+    import { app, db } from './firebase-config.js';
+    import {
+      getDatabase,
+      ref,
+      get,
+      child
+    } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
 
-  <!-- Include firebase-config.js -->
-  <script src="firebase-config.js"></script>
+    const loginSection = document.getElementById('loginSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const recordsContainer = document.getElementById('recordsContainer');
+    const userTypeFilter = document.getElementById('userTypeFilter');
+    const timeStatusFilter = document.getElementById('timeStatusFilter');
+    const showPasswordButton = document.getElementById('showPasswordButton');
+    const passwordInput = document.getElementById('password');
 
-  <script>
-    const loginBtn = document.getElementById("loginBtn");
-    const showPasswordButton = document.getElementById("showPasswordButton");
-    const loginContainer = document.getElementById("loginContainer");
-    const dashboard = document.getElementById("dashboard");
-
-    const usernameInput = document.getElementById("loginUsername");
-    const passwordInput = document.getElementById("loginPassword");
-
-    showPasswordButton.addEventListener("click", () => {
-      const inputType = passwordInput.type === "password" ? "text" : "password";
-      passwordInput.type = inputType;
-      showPasswordButton.textContent = inputType === "password" ? "Show Password" : "Hide Password";
+    showPasswordButton.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
     });
 
-    loginBtn.addEventListener("click", async () => {
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
+    window.login = async function () {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
 
-      const snapshot = await firebase.database().ref("accounts/admin").get();
-      const adminData = snapshot.val();
-
-      if (adminData && adminData.u_name === username && adminData.p_word === password) {
-        loginContainer.classList.add("hidden");
-        dashboard.classList.remove("hidden");
-        loadAllData();
-      } else {
-        alert("Invalid credentials!");
+      const dbRef = ref(getDatabase());
+      try {
+        const snapshot = await get(child(dbRef, `accounts/admin`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (username === data.u_name && password === data.p_word) {
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            fetchData(); // Fetch data after login
+          } else {
+            alert('Incorrect username or password');
+          }
+        } else {
+          alert('Admin credentials not found in database.');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again later.');
       }
-    });
+    };
 
-    const recordsContainer = document.getElementById("recordsContainer");
-    const userTypeFilter = document.getElementById("userTypeFilter");
-    const timeStatusFilter = document.getElementById("timeStatusFilter");
+    userTypeFilter.addEventListener('change', fetchData);
+    timeStatusFilter.addEventListener('change', fetchData);
 
-    userTypeFilter.addEventListener("change", loadAllData);
-    timeStatusFilter.addEventListener("change", loadAllData);
+    async function fetchData() {
+      recordsContainer.innerHTML = '';
+      const selectedUser = userTypeFilter.value;
+      const selectedStatus = timeStatusFilter.value;
 
-    async function loadAllData() {
-      recordsContainer.innerHTML = "";
+      const types = ['staff', 'student', 'guest'];
+      const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
 
-      const types = ["staff", "student", "guest"];
-      const selectedType = userTypeFilter.value;
-      const selectedTimeStatus = timeStatusFilter.value;
-
-      const toFetch = selectedType === "all" ? types : [selectedType];
-
-      for (const type of toFetch) {
-        const snapshot = await firebase.database().ref(type).get();
-        const data = snapshot.val();
-        if (data) {
-          Object.values(data).forEach(entry => {
+      for (const type of fetchTypes) {
+        const dbRef = ref(getDatabase(), type);
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          Object.values(data).forEach((entry) => {
             if (
-              selectedTimeStatus === "both" ||
-              entry.timeStatus === selectedTimeStatus
+              selectedStatus === 'all' ||
+              (entry.timeStatus && entry.timeStatus === selectedStatus)
             ) {
-              const recordDiv = document.createElement("div");
-              recordDiv.classList.add("record");
-
-              let readableTime = "N/A";
-              if (entry.timestamp) {
-                const date = new Date(entry.timestamp);
-                readableTime = date.toLocaleString();
-              }
-
+              const recordDiv = document.createElement('div');
+              recordDiv.className = 'record';
               recordDiv.innerHTML = `
                 <strong>User Type:</strong> ${type}<br>
-                <strong>Email:</strong> ${entry.email || "N/A"}<br>
-                <strong>Name:</strong> ${entry.firstname || ""} ${entry.middlename || ""} ${entry.lastname || ""} ${entry.nameext || ""}<br>
-                <strong>Time Status:</strong> ${entry.timeStatus || "N/A"}<br>
-                <strong>Room:</strong> ${entry.room || "N/A"}<br>
-                <strong>Floor:</strong> ${entry.floor || "N/A"}<br>
-                <strong>Purpose:</strong> ${entry.purpose || "N/A"}<br>
-                <strong>Timestamp:</strong> ${readableTime}<br>
-                ${
-                  entry.validID
-                    ? `<strong>Valid ID:</strong><br>${
-                        type === "staff"
-                          ? entry.validID
-                          : `<img src="${entry.validID}" />`
-                      }`
-                    : ""
-                }
-              `;
-
+                <strong>Email:</strong> ${entry.email || 'N/A'}<br>
+                <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
+                <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
+                <strong>Room:</strong> ${entry.room || 'N/A'}<br>
+                <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
+                <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
+                <strong>Timestamp:</strong> ${entry.timestamp || 'N/A'}<br>
+                ${entry.validID ? `<strong>Valid ID:</strong><br>${type === 'staff' ? entry.validID : `<img src="${entry.validID}" />`}` 
+: ''}`;
               recordsContainer.appendChild(recordDiv);
             }
           });
