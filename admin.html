@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>G</title>
+  <title>C</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -120,25 +120,6 @@
         <option value="Time In">Time In</option>
         <option value="Time Out">Time Out</option>
       </select>
-
-      <select id="yearFilter">
-        <option value="all">All Years</option>
-        <!-- Year options will be populated dynamically -->
-      </select>
-
-      <select id="monthFilter" disabled>
-        <option value="all">All Months</option>
-        <!-- Month options will be populated dynamically -->
-      </select>
-
-      <button id="todayButton" class="button">Today</button>
-      <button id="allButton" class="button">All</button>
-
-      <select id="floorFilter">
-        <option value="all">All Floors</option>
-        <option value="1">Floor 1</option>
-        <option value="2">Floor 2</option>
-      </select>
     </div>
 
     <div id="recordsContainer"></div>
@@ -158,13 +139,12 @@
     const recordsContainer = document.getElementById('recordsContainer');
     const userTypeFilter = document.getElementById('userTypeFilter');
     const timeStatusFilter = document.getElementById('timeStatusFilter');
-    const yearFilter = document.getElementById('yearFilter');
-    const monthFilter = document.getElementById('monthFilter');
-    const floorFilter = document.getElementById('floorFilter');
-    const todayButton = document.getElementById('todayButton');
-    const allButton = document.getElementById('allButton');
     const showPasswordButton = document.getElementById('showPasswordButton');
     const passwordInput = document.getElementById('password');
+
+    // Set default filter values to show all data
+    userTypeFilter.value = 'all';
+    timeStatusFilter.value = 'all';
 
     showPasswordButton.addEventListener('click', () => {
       const isPassword = passwordInput.type === 'password';
@@ -199,91 +179,57 @@
 
     userTypeFilter.addEventListener('change', fetchData);
     timeStatusFilter.addEventListener('change', fetchData);
-    yearFilter.addEventListener('change', fetchData);
-    monthFilter.addEventListener('change', fetchData);
-    floorFilter.addEventListener('change', fetchData);
 
-    todayButton.addEventListener('click', () => {
-      const today = new Date().toISOString().split('T')[0];
-      yearFilter.value = new Date().getFullYear();
-      monthFilter.value = new Date().getMonth() + 1;
-      dateFilter.value = today;
-      fetchData();
-    });
-
-    allButton.addEventListener('click', () => {
-      yearFilter.value = 'all';
-      monthFilter.value = 'all';
-      fetchData();
-    });
-
+    // Fetch data based on selected filters
     async function fetchData() {
       recordsContainer.innerHTML = '';
       const selectedUser = userTypeFilter.value;
       const selectedStatus = timeStatusFilter.value;
-      const selectedYear = yearFilter.value;
-      const selectedMonth = monthFilter.value;
-      const selectedFloor = floorFilter.value;
 
       const types = ['staff', 'student', 'guest'];
       const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
 
-      const dbRef = ref(getDatabase());
-      const snapshot = await get(dbRef);
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const yearsAvailable = Object.values(data).reduce((years, entry) => {
-          const year = new Date(entry.timestamp).getFullYear();
-          if (!years.includes(year)) years.push(year);
-          return years;
-        }, []);
+      for (const type of fetchTypes) {
+        const dbRef = ref(getDatabase(), type);
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          Object.values(data).forEach((entry) => {
+            if (selectedStatus === 'all' || entry.timeStatus === selectedStatus) {
+              const timestamp = entry.timestamp
+                ? new Date(entry.timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                    timeZone: 'Asia/Bangkok'
+                  })
+                : 'N/A';
 
-        // Populate year filter
-        yearFilter.innerHTML = '<option value="all">All Years</option>';
-        yearsAvailable.forEach(year => {
-          yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
-        });
-
-        // If year is selected, populate months
-        if (selectedYear !== 'all') {
-          const monthsAvailable = Object.values(data).reduce((months, entry) => {
-            const entryYear = new Date(entry.timestamp).getFullYear();
-            const entryMonth = new Date(entry.timestamp).getMonth() + 1;
-            if (entryYear === Number(selectedYear) && !months.includes(entryMonth)) months.push(entryMonth);
-            return months;
-          }, []);
-
-          monthFilter.innerHTML = '<option value="all">All Months</option>';
-          monthsAvailable.forEach(month => {
-            monthFilter.innerHTML += `<option value="${month}">${month}</option>`;
+              const recordDiv = document.createElement('div');
+              recordDiv.className = 'record';
+              recordDiv.innerHTML = `
+                <strong>User Type:</strong> ${type}<br>
+                <strong>Email:</strong> ${entry.email || 'N/A'}<br>
+                <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
+                <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
+                <strong>Room:</strong> ${entry.room || 'N/A'}<br>
+                <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
+                <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
+                <strong>Timestamp:</strong> ${timestamp}<br>
+                ${entry.validID ? `<strong>Valid ID:</strong><br>${type === 'staff' ? entry.validID : `<img src="${entry.validID}" />`}` : ''}
+              `;
+              recordsContainer.appendChild(recordDiv);
+            }
           });
-          monthFilter.disabled = false;
         }
-
-        Object.values(data).forEach((entry) => {
-        const timestamp = entry.timestamp ? new Date(entry.timestamp).getTime() : null;
-
-        // Filter by date range
-        if (startDate && timestamp && (timestamp < startDate || timestamp > endDate)) {
-          return;
-        }
-
-        const recordDiv = document.createElement('div');
-        recordDiv.className = 'record';
-        recordDiv.innerHTML = `
-          <strong>User Type:</strong> ${type}<br>
-          <strong>Email:</strong> ${entry.email || 'N/A'}<br>
-          <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
-          <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
-          <strong>Room:</strong> ${entry.room || 'N/A'}<br>
-          <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
-          <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
-          <strong>Timestamp:</strong> ${timestamp ? new Date(timestamp).toLocaleString() : 'N/A'}<br>
-        `;
-        recordsContainer.appendChild(recordDiv);
-      });
       }
     }
+
+    // Fetch all data on page load
+    fetchData();
   </script>
 </body>
 </html>
