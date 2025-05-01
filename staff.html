@@ -176,9 +176,9 @@
       const nameext = document.getElementById("nameext").value;
       const timeStatus = document.getElementById("timeStatus").value;
       const purpose = document.getElementById("purpose").value;
-      const validIDNumber = document.getElementById("validIDNumber").value;
+      const validIDNumber = document.getElementById("validID").value;
 
-      if (!email || !lastname || !firstname || !validIDNumber) {
+      if (!email || !lastname || !firstname || !validID) {
         alert("Please fill in all required fields.");
         return;
       }
@@ -187,7 +187,7 @@
       push(dbRef, {
         email, lastname, firstname, middlename, nameext,
         room: roomName, floor: floorName, timeStatus, purpose,
-        validIDNumber, timestamp: getPHTTimestamp()
+        validID, timestamp: getPHTTimestamp()
       });
 
       alert("Entry submitted successfully!");
