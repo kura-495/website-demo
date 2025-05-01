@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>B</title>
+  <title>D</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -162,7 +162,6 @@
       passwordInput.type = isPassword ? 'text' : 'password';
       showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
     });
-
     window.login = async function () {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -175,7 +174,7 @@
           if (username === data.u_name && password === data.p_word) {
             loginSection.style.display = 'none';
             dashboardSection.style.display = 'block';
-            fetchData();
+            fetchData(); // Fetch data after login
           } else {
             alert('Incorrect username or password');
           }
@@ -187,7 +186,6 @@
         alert('Login failed. Please try again later.');
       }
     };
-
     userTypeFilter.addEventListener('change', fetchData);
     timeStatusFilter.addEventListener('change', fetchData);
     dateFilter.addEventListener('change', fetchData);
