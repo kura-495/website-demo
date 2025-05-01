@@ -197,6 +197,7 @@
             ) {
               const recordDiv = document.createElement('div');
               recordDiv.className = 'record';
+               const timestamp = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : 'N/A';
               recordDiv.innerHTML = `
                 <strong>User Type:</strong> ${type}<br>
                 <strong>Email:</strong> ${entry.email || 'N/A'}<br>
