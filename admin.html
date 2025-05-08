@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>C</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <title>D</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -73,7 +73,6 @@
       gap: 10px;
       margin-bottom: 20px;
       justify-content: center;
-      flex-wrap: wrap;
     }
 
     .record {
@@ -93,44 +92,43 @@
       margin-top: 10px;
     }
 
-    /* Settings Dropdown */
-    .settings-wrapper {
+    /* Settings */
+    .settings-container {
       position: absolute;
       top: 20px;
-      left: 20px;
-      text-align: left;
+      right: 20px;
     }
 
-    #settingsButton {
-      background: none;
-      border: none;
-      cursor: pointer;
+    .settings-icon {
       font-size: 24px;
       color: #0077b6;
+      cursor: pointer;
     }
 
-    #settingsDropdown {
+    .settings-dropdown {
       display: none;
       position: absolute;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      border-radius: 5px;
-      margin-top: 5px;
-      overflow: hidden;
-      z-index: 1;
-    }
-
-    #settingsDropdown button {
-      padding: 10px 20px;
-      width: 100%;
-      border: none;
-      background: none;
-      cursor: pointer;
+      right: 0;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 10;
+      margin-top: 8px;
+      min-width: 160px;
       text-align: left;
     }
 
-    #settingsDropdown button:hover {
-      background-color: #f1f1f1;
+    .settings-dropdown a {
+      display: block;
+      padding: 10px;
+      color: #0077b6;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .settings-dropdown a:hover {
+      background-color: #e0f7ff;
     }
   </style>
 </head>
@@ -146,14 +144,13 @@
   </div>
 
   <!-- Dashboard Section -->
-  <div id="dashboardSection" style="display: none; position: relative;">
-
-    <!-- Settings Icon and Dropdown -->
-    <div class="settings-wrapper">
-      <button id="settingsButton"><i class="fas fa-cog"></i></button>
-      <div id="settingsDropdown">
-        <button onclick="changePassword()">Change Password</button>
-        <button onclick="editRoomName()">Edit Room Name</button>
+  <div id="dashboardSection" style="display: none;">
+    <!-- Settings Icon -->
+    <div class="settings-container">
+      <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
+      <div class="settings-dropdown" id="settingsDropdown">
+        <a href="#" onclick="changePassword()">Change Password</a>
+        <a href="#" onclick="editRoomName()">Edit Room Name</a>
       </div>
     </div>
 
@@ -203,7 +200,7 @@
   const showPasswordButton = document.getElementById('showPasswordButton');
   const passwordInput = document.getElementById('password');
 
-  const settingsButton = document.getElementById('settingsButton');
+  const settingsIcon = document.getElementById('settingsIcon');
   const settingsDropdown = document.getElementById('settingsDropdown');
 
   showPasswordButton.addEventListener('click', () => {
@@ -212,17 +209,15 @@
     showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
   });
 
-  settingsButton.addEventListener('click', () => {
+  settingsIcon.addEventListener('click', () => {
     settingsDropdown.style.display = settingsDropdown.style.display === 'block' ? 'none' : 'block';
   });
 
-  window.changePassword = () => {
-    alert('Change Password clicked (implement functionality here).');
-  };
-
-  window.editRoomName = () => {
-    alert('Edit Room Name clicked (implement functionality here).');
-  };
+  document.addEventListener('click', (e) => {
+    if (!settingsIcon.contains(e.target) && !settingsDropdown.contains(e.target)) {
+      settingsDropdown.style.display = 'none';
+    }
+  });
 
   window.login = async function () {
     const username = document.getElementById('username').value.trim();
@@ -236,7 +231,7 @@
         if (username === data.u_name && password === data.p_word) {
           loginSection.style.display = 'none';
           dashboardSection.style.display = 'block';
-          fetchData(); // Fetch data after login
+          fetchData();
         } else {
           alert('Incorrect username or password');
         }
@@ -320,6 +315,14 @@
       }
     }
   }
+
+  window.changePassword = function () {
+    alert('Change Password clicked. Implement functionality here.');
+  };
+
+  window.editRoomName = function () {
+    alert('Edit Room Name clicked. Implement functionality here.');
+  };
 </script>
 </body>
 </html>
