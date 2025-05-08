@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>J</title>
+  <title>G</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -144,154 +144,183 @@
     <div id="recordsContainer"></div>
   </div>
 
- <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { firebaseConfig } from './firebase-config.js';
+  <script type="module">
+    import { app, db } from './firebase-config.js';
+    import {
+      getDatabase,
+      ref,
+      get,
+      child
+    } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+    const loginSection = document.getElementById('loginSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const recordsContainer = document.getElementById('recordsContainer');
+    const userTypeFilter = document.getElementById('userTypeFilter');
+    const timeStatusFilter = document.getElementById('timeStatusFilter');
+    const yearFilter = document.getElementById('yearFilter');
+    const monthFilter = document.getElementById('monthFilter');
+    const floorFilter = document.getElementById('floorFilter');
+    const todayButton = document.getElementById('todayButton');
+    const allButton = document.getElementById('allButton');
+    const showPasswordButton = document.getElementById('showPasswordButton');
+    const passwordInput = document.getElementById('password');
 
-const userTypeFilter = document.getElementById('userTypeFilter');
-const timeStatusFilter = document.getElementById('timeStatusFilter');
-const yearFilter = document.getElementById('yearFilter');
-const monthFilter = document.getElementById('monthFilter');
-const floorFilter = document.getElementById('floorFilter');
-const todayButton = document.getElementById('todayButton');
-const allButton = document.getElementById('allButton');
-const recordsContainer = document.getElementById('records');
+    showPasswordButton.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
+    });
 
-let forceToday = false;
+    window.login = async function () {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
 
-userTypeFilter.addEventListener('change', fetchData);
-timeStatusFilter.addEventListener('change', fetchData);
-floorFilter.addEventListener('change', fetchData);
+      const dbRef = ref(getDatabase());
+      try {
+        const snapshot = await get(child(dbRef, `accounts/admin`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (username === data.u_name && password === data.p_word) {
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            fetchData(); // Fetch data after login
+          } else {
+            alert('Incorrect username or password');
+          }
+        } else {
+          alert('Admin credentials not found in database.');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again later.');
+      }
+    };
 
-yearFilter.addEventListener('change', () => {
+    userTypeFilter.addEventListener('change', fetchData);
+    timeStatusFilter.addEventListener('change', fetchData);
+   yearFilter.addEventListener('change', () => {
+  todayMode = false;
+
   if (yearFilter.value === 'all') {
     monthFilter.disabled = true;
     monthFilter.value = 'all';
   } else {
     monthFilter.disabled = false;
   }
+
   fetchData();
 });
+    monthFilter.addEventListener('change', fetchData);
+    floorFilter.addEventListener('change', fetchData);
 
-monthFilter.addEventListener('change', fetchData);
+    todayButton.addEventListener('click', () => {
+  todayMode = true;
 
-todayButton.addEventListener('click', () => {
-  forceToday = true;
   yearFilter.disabled = true;
   monthFilter.disabled = true;
-  fetchData();
+
+  fetchData(); // Now fetchData handles todayMode internally
 });
 
-allButton.addEventListener('click', () => {
-  forceToday = false;
+    allButton.addEventListener('click', () => {
+  todayMode = false;
+
   yearFilter.disabled = false;
-  yearFilter.value = 'all';
   monthFilter.disabled = true;
+  yearFilter.value = 'all';
   monthFilter.value = 'all';
+
   fetchData();
 });
-
-async function fetchData() {
+let todayMode = false;
+    async function fetchData() {
   recordsContainer.innerHTML = '';
-
   const selectedUser = userTypeFilter.value;
   const selectedStatus = timeStatusFilter.value;
   const selectedYear = yearFilter.value;
   const selectedMonth = monthFilter.value;
   const selectedFloor = floorFilter.value;
 
-  const dbRef = ref(db);
+  const types = ['staff', 'student', 'guest'];
+  const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
+
+  const dbRef = ref(getDatabase());
   const snapshot = await get(dbRef);
 
   if (!snapshot.exists()) return;
 
   const data = snapshot.val();
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
+
   const allEntries = [];
 
-  const types = selectedUser === 'all' ? ['staff', 'student', 'guest'] : [selectedUser];
-
-  types.forEach(type => {
-    if (data[type]) {
-      Object.values(data[type]).forEach(entry => {
-        allEntries.push({ ...entry, type });
+  fetchTypes.forEach((type) => {
+    const entries = data[type];
+    if (entries) {
+      Object.values(entries).forEach((entry) => {
+        entry._type = type; // tag type
+        allEntries.push(entry);
       });
     }
   });
 
-  // Populate Year Filter
-  const years = [...new Set(allEntries.map(e => new Date(e.timestamp).getFullYear()))].sort();
+  const yearsAvailable = [...new Set(allEntries
+    .filter(e => e.timestamp)
+    .map(e => new Date(e.timestamp).getFullYear()))];
+
+  // Update year filter options
   yearFilter.innerHTML = '<option value="all">All Years</option>';
-  years.forEach(y => {
-    const option = document.createElement('option');
-    option.value = y;
-    option.textContent = y;
-    yearFilter.appendChild(option);
+  yearsAvailable.forEach((y) => {
+    yearFilter.innerHTML += `<option value="${y}">${y}</option>`;
   });
 
-  // Populate Month Filter (only if a specific year is selected)
+  // Update month filter if year is selected
   if (selectedYear !== 'all') {
-    monthFilter.disabled = false;
-    const months = [...new Set(
-      allEntries
-        .filter(e => new Date(e.timestamp).getFullYear() === Number(selectedYear))
-        .map(e => new Date(e.timestamp).getMonth() + 1)
-    )].sort((a, b) => a - b);
+    const monthsAvailable = [...new Set(allEntries
+      .filter(e => e.timestamp && new Date(e.timestamp).getFullYear() === Number(selectedYear))
+      .map(e => new Date(e.timestamp).getMonth() + 1))];
 
     monthFilter.innerHTML = '<option value="all">All Months</option>';
-    months.forEach(m => {
-      const option = document.createElement('option');
-      option.value = m;
-      option.textContent = m;
-      monthFilter.appendChild(option);
+    monthsAvailable.forEach((m) => {
+      monthFilter.innerHTML += `<option value="${m}">${m}</option>`;
     });
+
+    monthFilter.disabled = false;
   }
 
-  // Filter entries based on selected filters
-  const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-  const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).getTime();
-
-  allEntries.forEach(entry => {
-    const timestamp = new Date(entry.timestamp).getTime();
-
-    if (forceToday && (timestamp < todayStart || timestamp >= todayEnd)) return;
-
-    if (selectedYear !== 'all') {
-      const entryYear = new Date(entry.timestamp).getFullYear();
-      if (entryYear !== Number(selectedYear)) return;
-    }
-
-    if (selectedMonth !== 'all' && selectedYear !== 'all') {
-      const entryMonth = new Date(entry.timestamp).getMonth() + 1;
-      if (entryMonth !== Number(selectedMonth)) return;
-    }
+  allEntries.forEach((entry) => {
+    const ts = entry.timestamp ? new Date(entry.timestamp).getTime() : null;
+    if (!ts) return;
 
     if (selectedStatus !== 'all' && entry.timeStatus !== selectedStatus) return;
     if (selectedFloor !== 'all' && entry.floor !== selectedFloor) return;
 
+    if (todayMode && (ts < todayStart || ts >= todayEnd)) return;
+
+    if (!todayMode && selectedYear !== 'all' && new Date(ts).getFullYear() !== Number(selectedYear)) return;
+    if (!todayMode && selectedMonth !== 'all' && (new Date(ts).getMonth() + 1) !== Number(selectedMonth)) return;
+
     const recordDiv = document.createElement('div');
     recordDiv.className = 'record';
     recordDiv.innerHTML = `
-      <strong>User Type:</strong> ${entry.type}<br>
+      <strong>User Type:</strong> ${entry._type}<br>
       <strong>Email:</strong> ${entry.email || 'N/A'}<br>
       <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
       <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
       <strong>Room:</strong> ${entry.room || 'N/A'}<br>
       <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
       <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
-      <strong>Timestamp:</strong> ${new Date(entry.timestamp).toLocaleString()}<br>
-      ${entry.imageData ? `<img src="${entry.imageData}" alt="ID Image" />` : ''}
+      <strong>Timestamp:</strong> ${ts ? new Date(ts).toLocaleString() : 'N/A'}<br>
     `;
     recordsContainer.appendChild(recordDiv);
   });
 }
 
-// Initial fetch
-fetchData();
-</script>
+    }
+  </script>
 </body>
 </html>
