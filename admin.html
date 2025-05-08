@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>D</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+  <title>E</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -73,6 +73,7 @@
       gap: 10px;
       margin-bottom: 20px;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .record {
@@ -92,43 +93,40 @@
       margin-top: 10px;
     }
 
-    /* Settings */
+    /* Settings dropdown */
     .settings-container {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      position: relative;
+      text-align: right;
+      margin-bottom: 10px;
     }
 
     .settings-icon {
+      cursor: pointer;
       font-size: 24px;
       color: #0077b6;
-      cursor: pointer;
+      display: inline-block;
     }
 
     .settings-dropdown {
-      display: none;
       position: absolute;
       right: 0;
-      background-color: white;
+      background: white;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 5px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      z-index: 10;
-      margin-top: 8px;
-      min-width: 160px;
+      margin-top: 5px;
+      z-index: 1000;
+      width: 160px;
       text-align: left;
     }
 
-    .settings-dropdown a {
-      display: block;
+    .settings-dropdown div {
       padding: 10px;
-      color: #0077b6;
-      text-decoration: none;
-      font-weight: bold;
+      cursor: pointer;
     }
 
-    .settings-dropdown a:hover {
-      background-color: #e0f7ff;
+    .settings-dropdown div:hover {
+      background-color: #f0f0f0;
     }
   </style>
 </head>
@@ -145,12 +143,13 @@
 
   <!-- Dashboard Section -->
   <div id="dashboardSection" style="display: none;">
-    <!-- Settings Icon -->
     <div class="settings-container">
-      <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
-      <div class="settings-dropdown" id="settingsDropdown">
-        <a href="#" onclick="changePassword()">Change Password</a>
-        <a href="#" onclick="editRoomName()">Edit Room Name</a>
+      <div id="settingsIcon" class="settings-icon">
+        <i class="fas fa-cog"></i>
+      </div>
+      <div id="settingsDropdown" class="settings-dropdown hidden">
+        <div onclick="alert('Change Password clicked')">Change Password</div>
+        <div onclick="alert('Edit Room Name clicked')">Edit Room Name</div>
       </div>
     </div>
 
@@ -181,148 +180,139 @@
     <div id="recordsContainer"></div>
   </div>
 
-<script type="module">
-  import { app, db } from './firebase-config.js';
-  import {
-    getDatabase,
-    ref,
-    get,
-    child
-  } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
+  <script type="module">
+    import { app, db } from './firebase-config.js';
+    import {
+      getDatabase,
+      ref,
+      get,
+      child
+    } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
 
-  const loginSection = document.getElementById('loginSection');
-  const dashboardSection = document.getElementById('dashboardSection');
-  const recordsContainer = document.getElementById('recordsContainer');
-  const userTypeFilter = document.getElementById('userTypeFilter');
-  const timeStatusFilter = document.getElementById('timeStatusFilter');
-  const dateFilter = document.getElementById('dateFilter');
-  const floorFilter = document.getElementById('floorFilter');
-  const showPasswordButton = document.getElementById('showPasswordButton');
-  const passwordInput = document.getElementById('password');
+    const loginSection = document.getElementById('loginSection');
+    const dashboardSection = document.getElementById('dashboardSection');
+    const recordsContainer = document.getElementById('recordsContainer');
+    const userTypeFilter = document.getElementById('userTypeFilter');
+    const timeStatusFilter = document.getElementById('timeStatusFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const floorFilter = document.getElementById('floorFilter');
+    const showPasswordButton = document.getElementById('showPasswordButton');
+    const passwordInput = document.getElementById('password');
+    const settingsIcon = document.getElementById('settingsIcon');
+    const settingsDropdown = document.getElementById('settingsDropdown');
 
-  const settingsIcon = document.getElementById('settingsIcon');
-  const settingsDropdown = document.getElementById('settingsDropdown');
+    showPasswordButton.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
+    });
 
-  showPasswordButton.addEventListener('click', () => {
-    const isPassword = passwordInput.type === 'password';
-    passwordInput.type = isPassword ? 'text' : 'password';
-    showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
-  });
+    settingsIcon.addEventListener('click', () => {
+      settingsDropdown.classList.toggle('hidden');
+    });
 
-  settingsIcon.addEventListener('click', () => {
-    settingsDropdown.style.display = settingsDropdown.style.display === 'block' ? 'none' : 'block';
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!settingsIcon.contains(e.target) && !settingsDropdown.contains(e.target)) {
-      settingsDropdown.style.display = 'none';
-    }
-  });
-
-  window.login = async function () {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-
-    const dbRef = ref(getDatabase());
-    try {
-      const snapshot = await get(child(dbRef, 'accounts/admin'));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        if (username === data.u_name && password === data.p_word) {
-          loginSection.style.display = 'none';
-          dashboardSection.style.display = 'block';
-          fetchData();
-        } else {
-          alert('Incorrect username or password');
-        }
-      } else {
-        alert('Admin credentials not found in database.');
+    document.addEventListener('click', (e) => {
+      if (!settingsIcon.contains(e.target) && !settingsDropdown.contains(e.target)) {
+        settingsDropdown.classList.add('hidden');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Login failed. Please try again later.');
-    }
-  };
+    });
 
-  userTypeFilter.addEventListener('change', fetchData);
-  timeStatusFilter.addEventListener('change', fetchData);
-  dateFilter.addEventListener('change', fetchData);
-  floorFilter.addEventListener('change', fetchData);
+    window.login = async function () {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
 
-  async function fetchData() {
-    recordsContainer.innerHTML = '';
-    const selectedUser = userTypeFilter.value;
-    const selectedStatus = timeStatusFilter.value;
-    const selectedDate = dateFilter.value;
-    const selectedFloor = floorFilter.value;
-
-    const types = ['staff', 'student', 'guest'];
-    const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
-
-    for (const type of fetchTypes) {
-      const dbRef = ref(getDatabase(), type);
-      const snapshot = await get(dbRef);
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        Object.values(data).forEach((entry) => {
-          if (selectedStatus !== 'all' && entry.timeStatus !== selectedStatus) return;
-
-          if (selectedDate && entry.timestamp) {
-            const entryDate = new Date(entry.timestamp);
-            const filterDate = new Date(selectedDate);
-            const sameDate =
-              entryDate.getFullYear() === filterDate.getFullYear() &&
-              entryDate.getMonth() === filterDate.getMonth() &&
-              entryDate.getDate() === filterDate.getDate();
-            if (!sameDate) return;
+      const dbRef = ref(getDatabase());
+      try {
+        const snapshot = await get(child(dbRef, 'accounts/admin'));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (username === data.u_name && password === data.p_word) {
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            fetchData();
+          } else {
+            alert('Incorrect username or password');
           }
+        } else {
+          alert('Admin credentials not found in database.');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please try again later.');
+      }
+    };
 
-          if (selectedFloor !== 'all' && entry.floor !== selectedFloor) return;
+    userTypeFilter.addEventListener('change', fetchData);
+    timeStatusFilter.addEventListener('change', fetchData);
+    dateFilter.addEventListener('change', fetchData);
+    floorFilter.addEventListener('change', fetchData);
 
-          const timestamp = entry.timestamp
-            ? new Date(entry.timestamp).toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true,
-                timeZone: 'Asia/Bangkok'
-              })
-            : 'N/A';
+    async function fetchData() {
+      recordsContainer.innerHTML = '';
+      const selectedUser = userTypeFilter.value;
+      const selectedStatus = timeStatusFilter.value;
+      const selectedDate = dateFilter.value;
+      const selectedFloor = floorFilter.value;
 
-          const recordDiv = document.createElement('div');
-          recordDiv.className = 'record';
-          recordDiv.innerHTML = `
-            <strong>User Type:</strong> ${type}<br>
-            <strong>Email:</strong> ${entry.email || 'N/A'}<br>
-            <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
-            <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
-            <strong>Room:</strong> ${entry.room || 'N/A'}<br>
-            <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
-            <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
-            <strong>Timestamp:</strong> ${timestamp}<br>
-            ${
-              entry.validID
-                ? `<strong>Valid ID:</strong><br>${
-                    type === 'staff' ? entry.validID : `<img src="${entry.validID}" style="max-width: 200px; max-height: 200px;" />`
-                  }`
-                : ''
+      const types = ['staff', 'student', 'guest'];
+      const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
+
+      for (const type of fetchTypes) {
+        const dbRef = ref(getDatabase(), type);
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          Object.values(data).forEach((entry) => {
+            if (selectedStatus !== 'all' && entry.timeStatus !== selectedStatus) return;
+
+            if (selectedDate && entry.timestamp) {
+              const entryDate = new Date(entry.timestamp);
+              const filterDate = new Date(selectedDate);
+              const sameDate =
+                entryDate.getFullYear() === filterDate.getFullYear() &&
+                entryDate.getMonth() === filterDate.getMonth() &&
+                entryDate.getDate() === filterDate.getDate();
+              if (!sameDate) return;
             }
-          `;
-          recordsContainer.appendChild(recordDiv);
-        });
+
+            if (selectedFloor !== 'all' && entry.floor !== selectedFloor) return;
+
+            const timestamp = entry.timestamp
+              ? new Date(entry.timestamp).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                  timeZone: 'Asia/Bangkok'
+                })
+              : 'N/A';
+
+            const recordDiv = document.createElement('div');
+            recordDiv.className = 'record';
+            recordDiv.innerHTML = `
+              <strong>User Type:</strong> ${type}<br>
+              <strong>Email:</strong> ${entry.email || 'N/A'}<br>
+              <strong>Name:</strong> ${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}<br>
+              <strong>Time Status:</strong> ${entry.timeStatus || 'N/A'}<br>
+              <strong>Room:</strong> ${entry.room || 'N/A'}<br>
+              <strong>Floor:</strong> ${entry.floor || 'N/A'}<br>
+              <strong>Purpose:</strong> ${entry.purpose || 'N/A'}<br>
+              <strong>Timestamp:</strong> ${timestamp}<br>
+              ${
+                entry.validID
+                  ? `<strong>Valid ID:</strong><br>${
+                      type === 'staff' ? entry.validID : `<img src="${entry.validID}" style="max-width: 200px; max-height: 200px;" />`
+                    }`
+                  : ''
+              }
+            `;
+            recordsContainer.appendChild(recordDiv);
+          });
+        }
       }
     }
-  }
-
-  window.changePassword = function () {
-    alert('Change Password clicked. Implement functionality here.');
-  };
-
-  window.editRoomName = function () {
-    alert('Edit Room Name clicked. Implement functionality here.');
-  };
-</script>
+  </script>
 </body>
 </html>
