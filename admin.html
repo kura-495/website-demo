@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>B</title>
+  <title>C</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -72,6 +73,7 @@
       gap: 10px;
       margin-bottom: 20px;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .record {
@@ -90,6 +92,46 @@
       display: block;
       margin-top: 10px;
     }
+
+    /* Settings Dropdown */
+    .settings-wrapper {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      text-align: left;
+    }
+
+    #settingsButton {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      color: #0077b6;
+    }
+
+    #settingsDropdown {
+      display: none;
+      position: absolute;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      border-radius: 5px;
+      margin-top: 5px;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    #settingsDropdown button {
+      padding: 10px 20px;
+      width: 100%;
+      border: none;
+      background: none;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    #settingsDropdown button:hover {
+      background-color: #f1f1f1;
+    }
   </style>
 </head>
 <body>
@@ -104,7 +146,17 @@
   </div>
 
   <!-- Dashboard Section -->
-  <div id="dashboardSection" style="display: none;">
+  <div id="dashboardSection" style="display: none; position: relative;">
+
+    <!-- Settings Icon and Dropdown -->
+    <div class="settings-wrapper">
+      <button id="settingsButton"><i class="fas fa-cog"></i></button>
+      <div id="settingsDropdown">
+        <button onclick="changePassword()">Change Password</button>
+        <button onclick="editRoomName()">Edit Room Name</button>
+      </div>
+    </div>
+
     <h1>Admin Dashboard</h1>
 
     <div class="filters">
@@ -151,11 +203,26 @@
   const showPasswordButton = document.getElementById('showPasswordButton');
   const passwordInput = document.getElementById('password');
 
+  const settingsButton = document.getElementById('settingsButton');
+  const settingsDropdown = document.getElementById('settingsDropdown');
+
   showPasswordButton.addEventListener('click', () => {
     const isPassword = passwordInput.type === 'password';
     passwordInput.type = isPassword ? 'text' : 'password';
     showPasswordButton.textContent = isPassword ? 'Hide Password' : 'Show Password';
   });
+
+  settingsButton.addEventListener('click', () => {
+    settingsDropdown.style.display = settingsDropdown.style.display === 'block' ? 'none' : 'block';
+  });
+
+  window.changePassword = () => {
+    alert('Change Password clicked (implement functionality here).');
+  };
+
+  window.editRoomName = () => {
+    alert('Edit Room Name clicked (implement functionality here).');
+  };
 
   window.login = async function () {
     const username = document.getElementById('username').value.trim();
@@ -163,7 +230,7 @@
 
     const dbRef = ref(getDatabase());
     try {
-      const snapshot = await get(child(dbRef, 'accounts/admin')); // FIXED: path should be in quotes
+      const snapshot = await get(child(dbRef, 'accounts/admin'));
       if (snapshot.exists()) {
         const data = snapshot.val();
         if (username === data.u_name && password === data.p_word) {
@@ -203,10 +270,8 @@
       if (snapshot.exists()) {
         const data = snapshot.val();
         Object.values(data).forEach((entry) => {
-          // Filter by timeStatus
           if (selectedStatus !== 'all' && entry.timeStatus !== selectedStatus) return;
 
-          // Filter by date
           if (selectedDate && entry.timestamp) {
             const entryDate = new Date(entry.timestamp);
             const filterDate = new Date(selectedDate);
@@ -217,7 +282,6 @@
             if (!sameDate) return;
           }
 
-          // Filter by floor
           if (selectedFloor !== 'all' && entry.floor !== selectedFloor) return;
 
           const timestamp = entry.timestamp
