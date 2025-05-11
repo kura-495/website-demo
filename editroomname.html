@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Edit Room Names</title>
+  <title>A</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
     body {
@@ -128,6 +128,7 @@
       "trainers_room"
     ];
 
+    // Load room data
     async function loadRooms() {
       for (const id of docIds) {
         const docRef = doc(firestore, "rooms", id);
@@ -138,6 +139,7 @@
       }
     }
 
+    // Filter rooms based on selected floor
     function filterRooms() {
       const floor = document.getElementById("floorSelect").value;
       const roomSelect = document.getElementById("roomSelect");
@@ -155,6 +157,7 @@
       document.getElementById("roomNameInput").value = "";
     }
 
+    // Populate room name when room is selected
     function populateRoomName() {
       const id = document.getElementById("roomSelect").value;
       if (id && rooms[id]) {
@@ -163,6 +166,7 @@
       }
     }
 
+    // Update room name in Firestore
     async function updateRoomName() {
       const id = document.getElementById("roomSelect").value;
       const newRoomName = document.getElementById("roomNameInput").value.trim();
@@ -187,14 +191,17 @@
       }
     }
 
+    // Show success or error messages
     function showMessage(msg, isError = false) {
       const el = document.getElementById("message");
       el.textContent = msg;
       el.className = "message " + (isError ? "error" : "success");
     }
 
-    // Initial load
-    loadRooms();
+    // Initial load of rooms
+    loadRooms().then(() => {
+      console.log('Rooms loaded');
+    });
   </script>
 
 </body>
