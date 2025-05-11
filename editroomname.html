@@ -1,93 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>D</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #e0f7ff;
       padding: 20px;
+      text-align: center;
     }
 
     h1 {
       color: #0077b6;
-      text-align: center;
     }
 
-    .home-icon {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 24px;
-      color: #0077b6;
-      cursor: pointer;
+    .form-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      max-width: 600px;
+      margin: auto;
     }
 
-    .section-title {
-      margin-top: 30px;
-      font-size: 20px;
-      color: #023e8a;
-      border-bottom: 2px solid #0096c7;
-      padding-bottom: 5px;
+    .message {
+      padding: 10px;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
     }
 
     .room-card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin: 10px auto;
-      max-width: 500px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
     }
 
     .room-card input {
-      width: 70%;
       padding: 8px;
-      font-size: 16px;
+      width: 80%;
+      margin-right: 10px;
       border-radius: 5px;
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
     }
 
     .room-card button {
+      padding: 8px 15px;
       background-color: #0096c7;
       color: white;
-      padding: 8px 15px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
 
     .room-card button:hover {
-      background-color: #005f80;
+      background-color: #0077b6;
     }
 
-    #message {
-      text-align: center;
-      font-weight: bold;
-      margin-top: 10px;
+    .section-title {
+      margin-top: 20px;
+      font-size: 20px;
+      color: #0077b6;
     }
 
-    .success {
-      color: green;
+    #homeIcon {
+      font-size: 24px;
+      color: #0077b6;
+      cursor: pointer;
+      position: absolute;
+      top: 20px;
+      right: 20px;
     }
 
-    .error {
-      color: red;
-    }
   </style>
 </head>
-<body>
-  <i class="fas fa-home home-icon" onclick="window.location.href='admin.html'"></i>
-  <h1>Edit Room Names</h1>
 
-  <div id="message"></div>
-  <div id="roomsContainer"></div>
+<body>
+  <div id="homeIcon" onclick="window.location.href='admin.html'">
+    <i class="fas fa-home"></i>
+  </div>
+  <h1>Edit Room Name</h1>
+
+  <div id="message" class="message hidden"></div>
+
+  <div id="roomsContainer" class="form-container">
+    <!-- Rooms will be loaded here -->
+  </div>
 
   <script type="module">
     import { app } from './firebase-config.js';
@@ -97,7 +110,8 @@
       getDocs,
       doc,
       updateDoc,
-      query
+      query,
+      where
     } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
     const firestore = getFirestore(app);
@@ -159,4 +173,5 @@
     loadRooms();
   </script>
 </body>
+
 </html>
