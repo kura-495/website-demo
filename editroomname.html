@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>H</title>
+  <title>I</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
     body {
@@ -25,7 +25,7 @@
       margin: 30px auto;
     }
 
-    select, input, button {
+    input, select, button {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
@@ -84,24 +84,24 @@
   </style>
 </head>
 <body>
-
   <i class="fas fa-home home-icon" onclick="window.location.href='admin.html'"></i>
 
   <h1>Edit Room Name</h1>
   <div class="form-container">
     <select id="floorSelect">
-      <option value="" disabled selected>Select Floor</option>
+      <option value="">-- Select Floor --</option>
       <option value="1st Floor">1st Floor</option>
       <option value="2nd Floor">2nd Floor</option>
     </select>
 
     <select id="roomSelect" disabled>
-      <option value="" disabled selected>Select Room</option>
+      <option value="">-- Select Room --</option>
     </select>
 
-    <input type="text" id="newRoomName" placeholder="Enter new room name" />
-    <button class="button" onclick="updateRoomName()">Update</button>
-    <p id="message" class="message"></p>
+    <input type="text" id="newRoomName" placeholder="Enter New Room Name" />
+    <button class="button" onclick="updateRoomName()">Update Room Name</button>
+
+    <div id="message" class="message"></div>
   </div>
 
   <script type="module">
@@ -111,7 +111,9 @@
       collection,
       getDocs,
       doc,
-      updateDoc
+      updateDoc,
+      query,
+      where
     } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const floorSelect = document.getElementById("floorSelect");
@@ -119,77 +121,80 @@
     const newRoomNameInput = document.getElementById("newRoomName");
     const messageEl = document.getElementById("message");
 
-    let roomData = []; // Store all rooms for filtering and duplicate checking
+    let allRooms = [];
 
-    async function loadRooms() {
+    floorSelect.addEventListener("change", async () => {
+      const selectedFloor = floorSelect.value;
+      roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+      roomSelect.disabled = true;
+      newRoomNameInput.value = "";
+
+      if (!selectedFloor) return;
+
       try {
         const snapshot = await getDocs(collection(db, "rooms"));
-        roomData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (error) {
-        console.error("Failed to load rooms:", error);
-        showMessage("Error loading rooms", true);
-      }
-    }
+        allRooms = [];
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          allRooms.push({ id: docSnap.id, ...data });
+        });
 
-    floorSelect.addEventListener("change", () => {
-      const selectedFloor = floorSelect.value;
-      const filteredRooms = roomData.filter(room => room.floor === selectedFloor);
-      roomSelect.innerHTML = `<option value="" disabled selected>Select Room</option>`;
-      filteredRooms.forEach(room => {
-        const option = document.createElement("option");
-        option.value = room.id;
-        option.textContent = room.roomName;
-        roomSelect.appendChild(option);
-      });
-      roomSelect.disabled = false;
-      newRoomNameInput.value = "";
-      showMessage("");
+        const filtered = allRooms.filter(r => r.floor === selectedFloor);
+        filtered.forEach(room => {
+          const option = document.createElement("option");
+          option.value = room.id;
+          option.textContent = room.roomName;
+          roomSelect.appendChild(option);
+        });
+
+        if (filtered.length > 0) {
+          roomSelect.disabled = false;
+        }
+      } catch (error) {
+        showMessage("Failed to load rooms.", true);
+        console.error(error);
+      }
     });
 
-    async function updateRoomName() {
-      const selectedRoomId = roomSelect.value;
-      const newName = newRoomNameInput.value.trim();
-      if (!selectedRoomId || !newName) {
+    function showMessage(msg, isError = false) {
+      messageEl.textContent = msg;
+      messageEl.className = `message ${isError ? 'error' : 'success'}`;
+    }
+
+    window.updateRoomName = async function () {
+      const floor = floorSelect.value;
+      const roomId = roomSelect.value;
+      const newRoomName = newRoomNameInput.value.trim();
+
+      if (!floor || !roomId || !newRoomName) {
         showMessage("Please fill in all fields.", true);
         return;
       }
 
-      // Check if name already exists (case-insensitive)
-      const nameExists = roomData.some(room =>
-        room.roomName.toLowerCase() === newName.toLowerCase() &&
-        room.id !== selectedRoomId
+      const duplicate = allRooms.find(room =>
+        room.roomName.toLowerCase() === newRoomName.toLowerCase()
       );
 
-      if (nameExists) {
+      if (duplicate && duplicate.id !== roomId) {
         showMessage("Room name already exists.", true);
         return;
       }
 
       try {
-        const roomRef = doc(db, "rooms", selectedRoomId);
-        await updateDoc(roomRef, {
-          roomName: newName
-        });
+        const roomRef = doc(db, "rooms", roomId);
+        await updateDoc(roomRef, { roomName: newRoomName });
         showMessage("Room name updated successfully.");
-        await loadRooms(); // reload room data to reflect update
-        roomSelect.dispatchEvent(new Event("change")); // refresh dropdown
+
+        // Reset form
+        floorSelect.selectedIndex = 0;
+        roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+        roomSelect.disabled = true;
         newRoomNameInput.value = "";
       } catch (error) {
-        console.error("Update failed:", error);
+        console.error(error);
         showMessage("Failed to update room name.", true);
       }
-    }
-
-    function showMessage(msg, isError = false) {
-      messageEl.textContent = msg;
-      messageEl.className = "message " + (isError ? "error" : "success");
-    }
-
-    await loadRooms();
-    window.updateRoomName = updateRoomName;
+    };
   </script>
 </body>
 </html>
