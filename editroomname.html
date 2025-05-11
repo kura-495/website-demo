@@ -3,62 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>B</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <title>C</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #e0f7ff;
       padding: 20px;
-      text-align: center;
     }
 
     h1 {
       color: #0077b6;
-      margin-bottom: 20px;
-    }
-
-    .form-container {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      max-width: 600px;
-      margin: auto;
-    }
-
-    select, input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #0096c7;
-      color: white;
-      cursor: pointer;
-      border: none;
-    }
-
-    button:hover {
-      background-color: #005f80;
-    }
-
-    .message {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-
-    .error {
-      color: red;
-    }
-
-    .success {
-      color: green;
+      text-align: center;
     }
 
     .home-icon {
@@ -70,139 +26,212 @@
       cursor: pointer;
     }
 
-    .home-icon:hover {
-      color: #005f80;
+    .section-title {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #023e8a;
+      border-bottom: 2px solid #0096c7;
+      padding-bottom: 5px;
+    }
+
+    .room-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin: 10px auto;
+      max-width: 500px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .room-card input {
+      width: 70%;
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .room-card button {
+      background-color: #0096c7;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .room-card button:hover {
+      background-color: #005f80;
+    }
+
+    #addRoomForm {
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: 30px auto 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #addRoomForm select, #addRoomForm input {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 10px;
+      font-size: 16px;
+    }
+
+    #addRoomForm button {
+      width: 100%;
+      background-color: #0077b6;
+      color: white;
+      padding: 10px;
+      border: none;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #addRoomForm button:hover {
+      background-color: #005f80;
+    }
+
+    .message {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
     }
   </style>
 </head>
 <body>
-
   <i class="fas fa-home home-icon" onclick="window.location.href='admin.html'"></i>
-
   <h1>Edit Room Names</h1>
 
-  <div class="form-container">
-    <label for="floorSelect">Select Floor:</label>
-    <select id="floorSelect" onchange="filterRooms()">
-      <option value="">-- Select Floor --</option>
+  <div id="addRoomForm">
+    <h3>Add New Room</h3>
+    <select id="floorSelect">
+      <option value="">Select Floor</option>
       <option value="1st Floor">1st Floor</option>
       <option value="2nd Floor">2nd Floor</option>
     </select>
-
-    <label for="roomSelect">Select Room:</label>
-    <select id="roomSelect" onchange="populateRoomName()">
-      <option value="">-- Select Room --</option>
-    </select>
-
-    <label for="roomNameInput">Edit Room Name:</label>
-    <input type="text" id="roomNameInput" placeholder="Enter new room name">
-
-    <button onclick="updateRoomName()">Update Room Name</button>
-
-    <div id="message" class="message"></div>
+    <input type="text" id="roomNameInput" placeholder="Enter Room Name" />
+    <button onclick="addRoom()">Add Room</button>
   </div>
 
+  <div id="message" class="message"></div>
+
+  <div id="roomsContainer"></div>
+
   <script type="module">
-    import { app, db } from './firebase-config.js';
+    import { app } from './firebase-config.js';
     import {
       getFirestore,
-      doc,
-      getDoc,
-      setDoc,
       collection,
-      getDocs
+      getDocs,
+      doc,
+      updateDoc,
+      setDoc,
+      query,
+      where
     } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
     const firestore = getFirestore(app);
-    const rooms = {};
-    const docIds = [
-      "assessment_center",
-      "bread_pastry",
-      "center_admin",
-      "food_beverage",
-      "korean_language",
-      "library",
-      "technical_drafting_autocad",
-      "technical_drafting_manual",
-      "trainers_methodology",
-      "trainers_room"
-    ];
+    const messageEl = document.getElementById("message");
+    const roomsContainer = document.getElementById("roomsContainer");
 
-    // Load room data
+    function showMessage(text, isError = false) {
+      messageEl.innerText = text;
+      messageEl.className = `message ${isError ? 'error' : 'success'}`;
+      setTimeout(() => messageEl.innerText = "", 3000);
+    }
+
     async function loadRooms() {
-      for (const id of docIds) {
-        const docRef = doc(firestore, "rooms", id);
-        const snapshot = await getDoc(docRef);
-        if (snapshot.exists()) {
-          rooms[id] = { ...snapshot.data(), id };
+      roomsContainer.innerHTML = "";
+
+      const floors = ["1st Floor", "2nd Floor"];
+      for (let floor of floors) {
+        const section = document.createElement("div");
+        section.innerHTML = `<h3 class="section-title">${floor}</h3>`;
+        const q = query(collection(firestore, "rooms"), where("floor", "==", floor));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          section.innerHTML += "<p style='text-align:center;'>No rooms found.</p>";
+        } else {
+          snapshot.forEach(docSnap => {
+            const room = docSnap.data();
+            const card = document.createElement("div");
+            card.className = "room-card";
+            card.innerHTML = `
+              <input type="text" id="room-${docSnap.id}" value="${room.name || "(Unnamed Room)"}" />
+              <button onclick="updateRoomName('${docSnap.id}')">Update</button>
+            `;
+            section.appendChild(card);
+          });
         }
+        roomsContainer.appendChild(section);
       }
     }
 
-    // Filter rooms based on selected floor
-    function filterRooms() {
-      const floor = document.getElementById("floorSelect").value;
-      const roomSelect = document.getElementById("roomSelect");
-      roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
-
-      for (const id in rooms) {
-        if (rooms[id].floor === floor) {
-          const option = document.createElement("option");
-          option.value = id;
-          option.textContent = rooms[id].roomName;
-          roomSelect.appendChild(option);
-        }
-      }
-
-      document.getElementById("roomNameInput").value = "";
-    }
-
-    // Populate room name when room is selected
-    function populateRoomName() {
-      const id = document.getElementById("roomSelect").value;
-      if (id && rooms[id]) {
-        document.getElementById("roomNameInput").value = rooms[id].roomName;
-        showMessage("");
-      }
-    }
-
-    // Update room name in Firestore
-    async function updateRoomName() {
-      const id = document.getElementById("roomSelect").value;
-      const newRoomName = document.getElementById("roomNameInput").value.trim();
-
-      if (!id || !newRoomName) {
-        showMessage("Please select a room and enter a new name.", true);
+    window.updateRoomName = async function(roomId) {
+      const input = document.getElementById(`room-${roomId}`);
+      const newName = input.value.trim();
+      if (!newName) {
+        showMessage("Room name cannot be empty.", true);
         return;
       }
 
       try {
-        await setDoc(doc(firestore, "rooms", id), {
-          ...rooms[id],
-          roomName: newRoomName
-        });
-
-        rooms[id].roomName = newRoomName;
-        showMessage("Room name updated successfully.", false);
-        filterRooms(); // refresh dropdown
-      } catch (error) {
-        console.error(error);
-        showMessage("Failed to update room name.", true);
+        await updateDoc(doc(firestore, "rooms", roomId), { name: newName });
+        showMessage("Room updated successfully.");
+      } catch (err) {
+        console.error(err);
+        showMessage("Failed to update room.", true);
       }
-    }
+    };
 
-    // Show success or error messages
-    function showMessage(msg, isError = false) {
-      const el = document.getElementById("message");
-      el.textContent = msg;
-      el.className = "message " + (isError ? "error" : "success");
-    }
+    window.addRoom = async function() {
+      const name = document.getElementById("roomNameInput").value.trim();
+      const floor = document.getElementById("floorSelect").value;
 
-    // Initial load of rooms
-    loadRooms().then(() => {
-      console.log('Rooms loaded');
-    });
+      if (!name || !floor) {
+        showMessage("Please provide both room name and floor.", true);
+        return;
+      }
+
+      try {
+        // Check if room already exists
+        const q = query(collection(firestore, "rooms"), where("name", "==", name), where("floor", "==", floor));
+        const existing = await getDocs(q);
+        if (!existing.empty) {
+          showMessage("Room already exists on this floor.", true);
+          return;
+        }
+
+        // Generate random ID
+        const newId = Math.random().toString(36).substr(2, 9);
+        await setDoc(doc(firestore, "rooms", newId), { name, floor });
+        showMessage("Room added successfully.");
+        document.getElementById("roomNameInput").value = "";
+        document.getElementById("floorSelect").value = "";
+        loadRooms();
+      } catch (err) {
+        console.error(err);
+        showMessage("Failed to add room.", true);
+      }
+    };
+
+    loadRooms();
   </script>
-
 </body>
 </html>
