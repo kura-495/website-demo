@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>C</title>
+  <title>D</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
   <style>
     body {
@@ -67,38 +67,7 @@
       background-color: #005f80;
     }
 
-    #addRoomForm {
-      background: #ffffff;
-      padding: 15px;
-      border-radius: 10px;
-      max-width: 500px;
-      margin: 30px auto 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    #addRoomForm select, #addRoomForm input {
-      width: 100%;
-      padding: 10px;
-      margin: 5px 0 10px;
-      font-size: 16px;
-    }
-
-    #addRoomForm button {
-      width: 100%;
-      background-color: #0077b6;
-      color: white;
-      padding: 10px;
-      border: none;
-      font-size: 16px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    #addRoomForm button:hover {
-      background-color: #005f80;
-    }
-
-    .message {
+    #message {
       text-align: center;
       font-weight: bold;
       margin-top: 10px;
@@ -117,19 +86,7 @@
   <i class="fas fa-home home-icon" onclick="window.location.href='admin.html'"></i>
   <h1>Edit Room Names</h1>
 
-  <div id="addRoomForm">
-    <h3>Add New Room</h3>
-    <select id="floorSelect">
-      <option value="">Select Floor</option>
-      <option value="1st Floor">1st Floor</option>
-      <option value="2nd Floor">2nd Floor</option>
-    </select>
-    <input type="text" id="roomNameInput" placeholder="Enter Room Name" />
-    <button onclick="addRoom()">Add Room</button>
-  </div>
-
-  <div id="message" class="message"></div>
-
+  <div id="message"></div>
   <div id="roomsContainer"></div>
 
   <script type="module">
@@ -140,9 +97,7 @@
       getDocs,
       doc,
       updateDoc,
-      setDoc,
-      query,
-      where
+      query
     } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
     const firestore = getFirestore(app);
@@ -173,7 +128,7 @@
             const card = document.createElement("div");
             card.className = "room-card";
             card.innerHTML = `
-              <input type="text" id="room-${docSnap.id}" value="${room.name || "(Unnamed Room)"}" />
+              <input type="text" id="room-${docSnap.id}" value="${room.roomName || "(Unnamed Room)"}" />
               <button onclick="updateRoomName('${docSnap.id}')">Update</button>
             `;
             section.appendChild(card);
@@ -192,42 +147,12 @@
       }
 
       try {
-        await updateDoc(doc(firestore, "rooms", roomId), { name: newName });
+        // Update room name
+        await updateDoc(doc(firestore, "rooms", roomId), { roomName: newName });
         showMessage("Room updated successfully.");
       } catch (err) {
         console.error(err);
         showMessage("Failed to update room.", true);
-      }
-    };
-
-    window.addRoom = async function() {
-      const name = document.getElementById("roomNameInput").value.trim();
-      const floor = document.getElementById("floorSelect").value;
-
-      if (!name || !floor) {
-        showMessage("Please provide both room name and floor.", true);
-        return;
-      }
-
-      try {
-        // Check if room already exists
-        const q = query(collection(firestore, "rooms"), where("name", "==", name), where("floor", "==", floor));
-        const existing = await getDocs(q);
-        if (!existing.empty) {
-          showMessage("Room already exists on this floor.", true);
-          return;
-        }
-
-        // Generate random ID
-        const newId = Math.random().toString(36).substr(2, 9);
-        await setDoc(doc(firestore, "rooms", newId), { name, floor });
-        showMessage("Room added successfully.");
-        document.getElementById("roomNameInput").value = "";
-        document.getElementById("floorSelect").value = "";
-        loadRooms();
-      } catch (err) {
-        console.error(err);
-        showMessage("Failed to add room.", true);
       }
     };
 
