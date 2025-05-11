@@ -158,7 +158,6 @@
   }
 });
 
-    // Show room info
     const roomName = localStorage.getItem("scannedRoom");
     const floorName = localStorage.getItem("scannedFloor");
     const roomInfo = document.getElementById("room-info");
@@ -194,12 +193,10 @@
       document.getElementById("staffForm").reset();
     });
 
-    // Auto logout
     window.addEventListener("beforeunload", () => {
       sessionStorage.removeItem("loggedIn");
     });
 
-    // Redirect if not logged in
     if (sessionStorage.getItem("loggedIn") !== "true") {
       loginContainer.classList.remove("hidden");
       mainContent.classList.add("hidden");
