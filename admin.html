@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>K</title>
+  <title>L</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
-<style>
+
+    <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #e0f7ff;
@@ -68,13 +69,20 @@
       background-color: #cce6ff;
     }
 
-    .filters {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
+.filters {
+  display: flex;
+  flex-wrap: wrap; /* allows wrapping on smaller screens */
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.filters select,
+.filters input[type="date"] {
+  width: auto;
+  max-width: 180px;
+  flex: 1 1 150px;
+}
 
     .record {
       background: white;
@@ -93,44 +101,40 @@
       margin-top: 10px;
     }
 
-    /* Settings Dropdown */
-    .settings-wrapper {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      text-align: left;
+    /* Settings dropdown */
+    .settings-container {
+      position: relative;
+      text-align: right;
+      margin-bottom: 10px;
     }
 
-    #settingsButton {
-      background: none;
-      border: none;
+    .settings-icon {
       cursor: pointer;
       font-size: 24px;
       color: #0077b6;
+      display: inline-block;
     }
 
-    #settingsDropdown {
-      display: none;
+    .settings-dropdown {
       position: absolute;
+      right: 0;
       background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      border: 1px solid #ccc;
       border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       margin-top: 5px;
-      overflow: hidden;
-      z-index: 1;
-    }
-
-    #settingsDropdown button {
-      padding: 10px 20px;
-      width: 100%;
-      border: none;
-      background: none;
-      cursor: pointer;
+      z-index: 1000;
+      width: 160px;
       text-align: left;
     }
 
-    #settingsDropdown button:hover {
-      background-color: #f1f1f1;
+    .settings-dropdown div {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .settings-dropdown div:hover {
+      background-color: #f0f0f0;
     }
   </style>
 </head>
