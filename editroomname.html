@@ -1,62 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>F</title>
+  <meta charset="UTF-8">
+  <title>G</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f8f4ff;
+      background-color: #e0f7ff;
       padding: 20px;
-    }
-
-    h2 {
       text-align: center;
-      margin-bottom: 20px;
     }
 
-    .container {
-      max-width: 500px;
-      margin: auto;
+    h1 {
+      color: #0077b6;
+    }
+
+    .form-container {
       background: white;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      max-width: 400px;
+      margin: 30px auto;
     }
 
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 15px;
-    }
-
-    select, input[type="text"], button {
+    select, input, button {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+      margin-bottom: 10px;
       font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
-    button {
-      margin-top: 20px;
-      background: #6b5b95;
+    .button {
+      background-color: #0096c7;
       color: white;
       border: none;
       cursor: pointer;
     }
 
-    button:hover {
-      background: #5a4a82;
+    .button:hover {
+      background-color: #005f80;
     }
 
     .message {
-      margin-top: 15px;
       font-weight: bold;
-      text-align: center;
+      margin: 10px 0;
     }
 
     .success {
@@ -72,147 +64,122 @@
       top: 20px;
       right: 20px;
       font-size: 24px;
-      color: #6b5b95;
       cursor: pointer;
+      color: #0077b6;
+      background-color: #ffffff;
+      padding: 10px 12px;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: background-color 0.2s, color 0.2s;
     }
 
     .home-icon:hover {
-      color: #5a4a82;
+      background-color: #cce6ff;
+      color: #005f80;
     }
   </style>
 </head>
 <body>
   <i class="fas fa-home home-icon" onclick="window.location.href='admin.html'"></i>
-  <div class="container">
-    <h2>Edit Room Name</h2>
-
-    <label for="floorSelect">Select Floor</label>
-    <select id="floorSelect" onchange="loadRooms()">
-      <option value="">-- Choose Floor --</option>
+  <h1>Edit Room Name</h1>
+  <div class="form-container">
+    <select id="floorSelect">
+      <option value="">Select Floor</option>
       <option value="1st Floor">1st Floor</option>
       <option value="2nd Floor">2nd Floor</option>
     </select>
 
-    <label for="roomSelect">Select Room</label>
-    <select id="roomSelect" disabled onchange="enableEdit()">
-      <option value="">-- Choose Room --</option>
+    <select id="roomSelect" disabled>
+      <option value="">Select Room</option>
     </select>
 
-    <label for="newRoomName">New Room Name</label>
-    <input type="text" id="newRoomName" placeholder="Enter new name" disabled />
-
-    <button onclick="updateRoomName()" disabled id="updateBtn">Update Name</button>
-
+    <input type="text" id="newRoomName" placeholder="Enter new room name" />
+    <button class="button" onclick="updateRoomName()">Update Room Name</button>
     <div id="message" class="message"></div>
   </div>
 
   <script type="module">
-    import { app, db } from './firebase-config.js';
+    import { db } from './firebase-config.js';
     import {
       getFirestore,
       collection,
       getDocs,
       doc,
-      updateDoc,
-      query,
-      where
+      updateDoc
     } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    const firestore = getFirestore(app);
+    const floorSelect = document.getElementById('floorSelect');
+    const roomSelect = document.getElementById('roomSelect');
+    const newRoomNameInput = document.getElementById('newRoomName');
+    const messageDiv = document.getElementById('message');
 
-    let selectedDocId = "";
+    let allRooms = [];
 
     async function loadRooms() {
-      const floor = document.getElementById("floorSelect").value;
-      const roomSelect = document.getElementById("roomSelect");
-      const updateBtn = document.getElementById("updateBtn");
-      const newRoomInput = document.getElementById("newRoomName");
-      const message = document.getElementById("message");
-
-      roomSelect.innerHTML = `<option value="">-- Choose Room --</option>`;
-      roomSelect.disabled = true;
-      newRoomInput.disabled = true;
-      updateBtn.disabled = true;
-      selectedDocId = "";
-      message.textContent = "";
-
-      if (!floor) return;
-
-      const roomsRef = collection(firestore, "rooms");
-      const q = query(roomsRef, where("floor", "==", floor));
-      const snapshot = await getDocs(q);
-
+      const snapshot = await getDocs(collection(db, "rooms"));
+      allRooms = [];
       snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const option = document.createElement("option");
-        option.value = docSnap.id;
-        option.textContent = data.roomName;
-        roomSelect.appendChild(option);
+        allRooms.push({ id: docSnap.id, ...docSnap.data() });
       });
-
-      if (!snapshot.empty) {
-        roomSelect.disabled = false;
-      }
     }
 
-    function enableEdit() {
-      const roomSelect = document.getElementById("roomSelect");
-      const newRoomInput = document.getElementById("newRoomName");
-      const updateBtn = document.getElementById("updateBtn");
-      const message = document.getElementById("message");
-
-      selectedDocId = roomSelect.value;
-      newRoomInput.disabled = !selectedDocId;
-      updateBtn.disabled = !selectedDocId;
-      message.textContent = "";
-    }
-
-    async function updateRoomName() {
-      const floor = document.getElementById("floorSelect").value;
-      const newName = document.getElementById("newRoomName").value.trim();
-      const message = document.getElementById("message");
-
-      if (!newName) {
-        showMessage("Please enter a new room name.", true);
+    floorSelect.addEventListener('change', () => {
+      const selectedFloor = floorSelect.value;
+      roomSelect.innerHTML = '<option value="">Select Room</option>';
+      if (!selectedFloor) {
+        roomSelect.disabled = true;
         return;
       }
 
-      // Check if room name already exists in the same floor
-      const roomsRef = collection(firestore, "rooms");
-      const q = query(roomsRef, where("floor", "==", floor));
-      const snapshot = await getDocs(q);
-
-      const nameExists = snapshot.docs.some(docSnap => {
-        const data = docSnap.data();
-        return data.roomName.toLowerCase() === newName.toLowerCase();
+      const filteredRooms = allRooms.filter(room => room.floor === selectedFloor);
+      filteredRooms.forEach(room => {
+        const option = document.createElement('option');
+        option.value = room.id;
+        option.text = room.roomName;
+        roomSelect.appendChild(option);
       });
 
-      if (nameExists) {
-        showMessage("Room name already exists on this floor.", true);
+      roomSelect.disabled = false;
+    });
+
+    async function updateRoomName() {
+      const selectedRoomId = roomSelect.value;
+      const newRoomName = newRoomNameInput.value.trim();
+
+      if (!selectedRoomId || !newRoomName) {
+        showMessage("Please select a room and enter a new name.", true);
+        return;
+      }
+
+      const roomExists = allRooms.some(
+        room => room.roomName.toLowerCase() === newRoomName.toLowerCase()
+      );
+
+      if (roomExists) {
+        showMessage("Room name already exists.", true);
         return;
       }
 
       try {
-        const roomDoc = doc(firestore, "rooms", selectedDocId);
-        await updateDoc(roomDoc, { roomName: newName });
+        const roomRef = doc(db, "rooms", selectedRoomId);
+        await updateDoc(roomRef, { roomName: newRoomName });
         showMessage("Room name updated successfully.");
-        document.getElementById("newRoomName").value = "";
-        loadRooms(); // reload room dropdown
-      } catch (err) {
-        console.error(err);
+        await loadRooms();
+        floorSelect.dispatchEvent(new Event('change'));
+        newRoomNameInput.value = "";
+      } catch (error) {
+        console.error(error);
         showMessage("Failed to update room name.", true);
       }
     }
 
     function showMessage(msg, isError = false) {
-      const message = document.getElementById("message");
-      message.textContent = msg;
-      message.className = "message " + (isError ? "error" : "success");
+      messageDiv.textContent = msg;
+      messageDiv.className = "message " + (isError ? "error" : "success");
     }
 
-    window.loadRooms = loadRooms;
-    window.enableEdit = enableEdit;
-    window.updateRoomName = updateRoomName;
+    // Initial load
+    loadRooms();
   </script>
 </body>
 </html>
