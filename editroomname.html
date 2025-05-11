@@ -1,109 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>E</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>F</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #e0f7ff;
+      background: #f8f4ff;
       padding: 20px;
+    }
+
+    h2 {
       text-align: center;
+      margin-bottom: 20px;
     }
 
-    h1 {
-      color: #0077b6;
-    }
-
-    .form-container {
+    .container {
+      max-width: 500px;
+      margin: auto;
       background: white;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      max-width: 600px;
-      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    .message {
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    select, input[type="text"], button {
+      width: 100%;
       padding: 10px;
-      margin-bottom: 20px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
       font-size: 16px;
     }
 
-    .message.success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .message.error {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .room-card {
-      margin: 10px 0;
-      padding: 10px;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-
-    .room-card input {
-      padding: 8px;
-      width: 80%;
-      margin-right: 10px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-    }
-
-    .room-card button {
-      padding: 8px 15px;
-      background-color: #0096c7;
+    button {
+      margin-top: 20px;
+      background: #6b5b95;
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
     }
 
-    .room-card button:hover {
-      background-color: #0077b6;
+    button:hover {
+      background: #5a4a82;
     }
 
-    .section-title {
-      margin-top: 20px;
-      font-size: 20px;
-      color: #0077b6;
+    .message {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
     }
 
-    #homeIcon {
-      font-size: 24px;
-      color: #0077b6;
-      cursor: pointer;
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .home-icon {
       position: absolute;
       top: 20px;
       right: 20px;
+      font-size: 24px;
+      color: #6b5b95;
+      cursor: pointer;
     }
 
+    .home-icon:hover {
+      color: #5a4a82;
+    }
   </style>
 </head>
-
 <body>
-  <div id="homeIcon" onclick="window.location.href='admin.html'">
-    <i class="fas fa-home"></i>
-  </div>
-  <h1>Edit Room Name</h1>
+  <i class="fas fa-home home-icon" onclick="window.location.href='admin.html'"></i>
+  <div class="container">
+    <h2>Edit Room Name</h2>
 
-  <div id="message" class="message hidden"></div>
+    <label for="floorSelect">Select Floor</label>
+    <select id="floorSelect" onchange="loadRooms()">
+      <option value="">-- Choose Floor --</option>
+      <option value="1st Floor">1st Floor</option>
+      <option value="2nd Floor">2nd Floor</option>
+    </select>
 
-  <div id="roomsContainer" class="form-container">
-    <!-- Rooms will be loaded here -->
+    <label for="roomSelect">Select Room</label>
+    <select id="roomSelect" disabled onchange="enableEdit()">
+      <option value="">-- Choose Room --</option>
+    </select>
+
+    <label for="newRoomName">New Room Name</label>
+    <input type="text" id="newRoomName" placeholder="Enter new name" disabled />
+
+    <button onclick="updateRoomName()" disabled id="updateBtn">Update Name</button>
+
+    <div id="message" class="message"></div>
   </div>
 
   <script type="module">
-    import { app } from './firebase-config.js';
+    import { app, db } from './firebase-config.js';
     import {
       getFirestore,
       collection,
@@ -112,66 +116,103 @@
       updateDoc,
       query,
       where
-    } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firestore = getFirestore(app);
-    const messageEl = document.getElementById("message");
-    const roomsContainer = document.getElementById("roomsContainer");
 
-    function showMessage(text, isError = false) {
-      messageEl.innerText = text;
-      messageEl.className = `message ${isError ? 'error' : 'success'}`;
-      setTimeout(() => messageEl.innerText = "", 3000);
-    }
+    let selectedDocId = "";
 
     async function loadRooms() {
-      roomsContainer.innerHTML = "";
+      const floor = document.getElementById("floorSelect").value;
+      const roomSelect = document.getElementById("roomSelect");
+      const updateBtn = document.getElementById("updateBtn");
+      const newRoomInput = document.getElementById("newRoomName");
+      const message = document.getElementById("message");
 
-      const floors = ["1st Floor", "2nd Floor"];
-      for (let floor of floors) {
-        const section = document.createElement("div");
-        section.innerHTML = `<h3 class="section-title">${floor}</h3>`;
-        const q = query(collection(firestore, "rooms"), where("floor", "==", floor));
-        const snapshot = await getDocs(q);
+      roomSelect.innerHTML = `<option value="">-- Choose Room --</option>`;
+      roomSelect.disabled = true;
+      newRoomInput.disabled = true;
+      updateBtn.disabled = true;
+      selectedDocId = "";
+      message.textContent = "";
 
-        if (snapshot.empty) {
-          section.innerHTML += "<p style='text-align:center;'>No rooms found.</p>";
-        } else {
-          snapshot.forEach(docSnap => {
-            const room = docSnap.data();
-            const card = document.createElement("div");
-            card.className = "room-card";
-            card.innerHTML = `
-              <input type="text" id="room-${docSnap.id}" value="${room.roomName || "(Unnamed Room)"}" />
-              <button onclick="updateRoomName('${docSnap.id}')">Update</button>
-            `;
-            section.appendChild(card);
-          });
-        }
-        roomsContainer.appendChild(section);
+      if (!floor) return;
+
+      const roomsRef = collection(firestore, "rooms");
+      const q = query(roomsRef, where("floor", "==", floor));
+      const snapshot = await getDocs(q);
+
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.textContent = data.roomName;
+        roomSelect.appendChild(option);
+      });
+
+      if (!snapshot.empty) {
+        roomSelect.disabled = false;
       }
     }
 
-    window.updateRoomName = async function(roomId) {
-      const input = document.getElementById(`room-${roomId}`);
-      const newName = input.value.trim();
+    function enableEdit() {
+      const roomSelect = document.getElementById("roomSelect");
+      const newRoomInput = document.getElementById("newRoomName");
+      const updateBtn = document.getElementById("updateBtn");
+      const message = document.getElementById("message");
+
+      selectedDocId = roomSelect.value;
+      newRoomInput.disabled = !selectedDocId;
+      updateBtn.disabled = !selectedDocId;
+      message.textContent = "";
+    }
+
+    async function updateRoomName() {
+      const floor = document.getElementById("floorSelect").value;
+      const newName = document.getElementById("newRoomName").value.trim();
+      const message = document.getElementById("message");
+
       if (!newName) {
-        showMessage("Room name cannot be empty.", true);
+        showMessage("Please enter a new room name.", true);
+        return;
+      }
+
+      // Check if room name already exists in the same floor
+      const roomsRef = collection(firestore, "rooms");
+      const q = query(roomsRef, where("floor", "==", floor));
+      const snapshot = await getDocs(q);
+
+      const nameExists = snapshot.docs.some(docSnap => {
+        const data = docSnap.data();
+        return data.roomName.toLowerCase() === newName.toLowerCase();
+      });
+
+      if (nameExists) {
+        showMessage("Room name already exists on this floor.", true);
         return;
       }
 
       try {
-        // Update room name
-        await updateDoc(doc(firestore, "rooms", roomId), { roomName: newName });
-        showMessage("Room updated successfully.");
+        const roomDoc = doc(firestore, "rooms", selectedDocId);
+        await updateDoc(roomDoc, { roomName: newName });
+        showMessage("Room name updated successfully.");
+        document.getElementById("newRoomName").value = "";
+        loadRooms(); // reload room dropdown
       } catch (err) {
         console.error(err);
-        showMessage("Failed to update room.", true);
+        showMessage("Failed to update room name.", true);
       }
-    };
+    }
 
-    loadRooms();
+    function showMessage(msg, isError = false) {
+      const message = document.getElementById("message");
+      message.textContent = msg;
+      message.className = "message " + (isError ? "error" : "success");
+    }
+
+    window.loadRooms = loadRooms;
+    window.enableEdit = enableEdit;
+    window.updateRoomName = updateRoomName;
   </script>
 </body>
-
 </html>
