@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>L</title>
+  <title>Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
@@ -140,7 +140,6 @@
 </head>
 <body>
 
-  <!-- Login Section -->
   <div class="form-container" id="loginSection">
     <h1>Admin Login</h1>
     <input type="text" id="username" placeholder="Username" required />
@@ -149,7 +148,6 @@
     <button class="button" onclick="login()">Login</button>
   </div>
 
-  <!-- Dashboard Section -->
   <div id="dashboardSection" style="display: none;">
     <div class="settings-container">
       <div id="settingsIcon" class="settings-icon">
@@ -230,7 +228,6 @@
       }
     });
 
-    // Settings dropdown actions
     changePasswordBtn.addEventListener('click', () => {
       window.location.href = 'changepassword.html';
     });
@@ -244,7 +241,6 @@
       location.reload();
     });
 
-    // Check login on page load
     if (localStorage.getItem('isLoggedIn') === 'true') {
       loginSection.style.display = 'none';
       dashboardSection.style.display = 'block';
