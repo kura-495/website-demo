@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>I</title>
+  <title>J</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
   <style>
     body {
@@ -159,6 +159,12 @@
     function showMessage(msg, isError = false) {
       messageEl.textContent = msg;
       messageEl.className = `message ${isError ? 'error' : 'success'}`;
+    
+      if (!isError) {
+        setTimeout(() => {
+          messageEl.textContent = '';
+        }, 3000);
+      }
     }
 
     window.updateRoomName = async function () {
@@ -185,7 +191,6 @@
         await updateDoc(roomRef, { roomName: newRoomName });
         showMessage("Room name updated successfully.");
 
-        // Reset form
         floorSelect.selectedIndex = 0;
         roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
         roomSelect.disabled = true;
