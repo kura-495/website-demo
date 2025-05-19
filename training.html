@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Registration</title>
+    <title>A</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script type="module" src="firebase-config.js"></script>
@@ -103,6 +103,7 @@
         .view-file-btn:hover {
             background-color: #413d9b;
         }
+
         .progress-container {
             width: 100%;
             background-color: #ddd;
@@ -122,10 +123,10 @@
 </head>
 
 <body>
-    <h1>Student Registration</h1>
+    <h1>Training Registration</h1>
     <div class="room-info" id="room-info">Fetching Room Info...</div>
     <div class="form-container">
-        <form id="studentForm">
+        <form id="trainingForm">
             <input type="email" id="email" placeholder="E-mail" required>
             <input type="text" id="lastname" placeholder="Last Name" required>
             <input type="text" id="firstname" placeholder="First Name" required>
@@ -139,7 +140,7 @@
             </select>
 
             <label for="purpose">Purpose of Visit:</label>
-            <textarea id="purpose" rows="4" maxlength="500" placeholder="Enter purpose of visit (max 500 characters)" required></textarea>
+            <textarea id="purpose" rows="4" maxlength="500" disabled>Training</textarea>
 
             <label class="file-label" for="validID">Upload a clear image of your Valid ID:</label>
             <input type="file" id="validID" class="file-input" accept="image/*" required>
@@ -173,43 +174,43 @@
         let fileBase64 = "";
 
         fileInput.addEventListener("change", () => {
-    const file = fileInput.files[0];
-    if (file) {
-        const reader = new FileReader();
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
 
-        reader.onprogress = function(event) {
-            if (event.lengthComputable) {
-                const percentLoaded = Math.round((event.loaded / event.total) * 100);
-                progressContainer.style.display = "block";
-                progressBar.style.width = percentLoaded + "%";
-            }
-        };
+                reader.onprogress = function(event) {
+                    if (event.lengthComputable) {
+                        const percentLoaded = Math.round((event.loaded / event.total) * 100);
+                        progressContainer.style.display = "block";
+                        progressBar.style.width = percentLoaded + "%";
+                    }
+                };
 
-        reader.onloadstart = function() {
-            progressContainer.style.display = "block";
-            progressBar.style.width = "0%";
-        };
+                reader.onloadstart = function() {
+                    progressContainer.style.display = "block";
+                    progressBar.style.width = "0%";
+                };
 
-        reader.onload = function(event) {
-            fileBase64 = event.target.result;
-            filePreview.src = fileBase64;
-            filePreview.style.display = "block";
-            viewFileBtn.style.display = "block";
-            progressBar.style.width = "100%";
+                reader.onload = function(event) {
+                    fileBase64 = event.target.result;
+                    filePreview.src = fileBase64;
+                    filePreview.style.display = "block";
+                    viewFileBtn.style.display = "block";
+                    progressBar.style.width = "100%";
 
-            setTimeout(() => {
+                    setTimeout(() => {
+                        progressContainer.style.display = "none";
+                    }, 500);
+                };
+
+                reader.readAsDataURL(file);
+            } else {
+                filePreview.style.display = "none";
+                viewFileBtn.style.display = "none";
                 progressContainer.style.display = "none";
-            }, 500);
-        };
-
-        reader.readAsDataURL(file);
-    } else {
-        filePreview.style.display = "none";
-        viewFileBtn.style.display = "none";
-        progressContainer.style.display = "none";
-        fileBase64 = "";
-    }
-});
+                fileBase64 = "";
+            }
+        });
 
         viewFileBtn.addEventListener("click", (event) => {
             event.preventDefault();
@@ -226,23 +227,21 @@
             const middlename = document.getElementById("middlename").value;
             const nameext = document.getElementById("nameext").value;
             const timeStatus = document.getElementById("timeStatus").value;
-            const purpose = document.getElementById("purpose").value;
-
-            console.log("Form Values:", { email, lastname, firstname, middlename, nameext, timeStatus, purpose, fileBase64 });
+            const purpose = "Training";
 
             if (!email || !lastname || !firstname || !fileBase64) {
                 alert("Please fill in required fields and upload a valid ID.");
                 return;
             }
 
-            const dbRef = ref(getDatabase(), "student");
+            const dbRef = ref(getDatabase(), "training");
             push(dbRef, {
                 email, lastname, firstname, middlename, nameext, room: roomName, floor: floorName,
                 timeStatus, purpose, validID: fileBase64, timestamp: getPHTTimestamp()
             });
 
             alert("Entry submitted successfully!");
-            document.getElementById("studentForm").reset();
+            document.getElementById("trainingForm").reset();
             filePreview.style.display = "none";
             viewFileBtn.style.display = "none";
             fileBase64 = "";
