@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QRLog</title>
+    <title>A</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <script type="module" src="firebase-config.js"></script>
@@ -86,9 +86,8 @@
     <h1>QRLog</h1>
     <div class="room-info" id="room-info"><span class="spinner"></span> Loading...</div>
     <div class="button-container" id="button-container">
-        <button class="button" id="staff-button">Staff</button>
-        <button class="button" id="guest-button">Guest/Visitor</button>
-        <button class="button" id="student-button">Student</button>
+        <button class="button" id="assessment-button">Assessment</button>
+        <button class="button" id="training-button">Training</button>
     </div>
 
     <script type="module">
@@ -127,14 +126,12 @@
 
         fetchRoomDetails(roomID);
 
-        document.getElementById("guest-button").addEventListener("click", () => {
-            window.location.href = "guest.html";
+        document.getElementById("assessment-button").addEventListener("click", () => {
+            window.location.href = "assessment.html";
         });
-         document.getElementById("student-button").addEventListener("click", () => {
-            window.location.href = "student.html";
-        });
-         document.getElementById("staff-button").addEventListener("click", () => {
-            window.location.href = "staff.html";
+
+        document.getElementById("training-button").addEventListener("click", () => {
+            window.location.href = "training.html";
         });
     </script>
 </body> 
