@@ -1,94 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Online Log</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loading</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #d0ebff;
+      background-color: #e3f2fd;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       flex-direction: column;
-      color: #333;
     }
-
-    .title {
-      font-size: 2em;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-
-    .spinner {
-      border: 6px solid #e3f2fd;
-      border-top: 6px solid #339af0;
+    .loader {
+      border: 5px solid #e3f2fd;
+      border-top: 5px solid #42a5f5;
       border-radius: 50%;
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
       animation: spin 1s linear infinite;
       margin-bottom: 10px;
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    .error {
-      color: red;
-      font-size: 1.2em;
-      margin-top: 10px;
+    h2 {
+      margin: 0;
+      color: #1565c0;
     }
   </style>
 </head>
 <body>
-  <div class="title" id="pageTitle">Online Log</div>
-  <div class="spinner" id="spinner"></div>
-  <div class="error" id="errorText" style="display: none;">Invalid link</div>
+  <div class="loader" id="loader"></div>
+  <h2 id="statusText">Online Log</h2>
 
   <script type="module">
-import { db } from './firebase-config.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+    import { db } from './firebase-config.js';
+    import {
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const statusText = document.getElementById("statusText");
+    const loader = document.getElementById("loader");
 
     const urlParams = new URLSearchParams(window.location.search);
-    const idFromLink = urlParams.get('id');
+    const id = urlParams.get("id");
 
-    const pageTitle = document.getElementById("pageTitle");
-    const errorText = document.getElementById("errorText");
+    async function validateRoom() {
+      if (!id) {
+        statusText.textContent = "Invalid link";
+        loader.style.display = "none";
+        return;
+      }
 
-    async function validateCode() {
-      const roomsRef = collection(db, "rooms");
-      const snapshot = await getDocs(roomsRef);
-      let found = false;
+      try {
+        const roomsRef = collection(db, "rooms");
+        const snapshot = await getDocs(roomsRef);
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.code === idFromLink) {
-          localStorage.setItem("scannedRoom", data.roomName);
-          localStorage.setItem("scannedFloor", data.floor);
-          found = true;
+        let found = false;
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.code === id) {
+            localStorage.setItem("scannedRoom", data.roomName);
+            localStorage.setItem("scannedFloor", data.floor);
+            found = true;
+          }
+        });
+
+        if (found) {
+          window.location.href = "register.html";
+        } else {
+          statusText.textContent = "Invalid link";
+          loader.style.display = "none";
         }
-      });
-
-      if (found) {
-        window.location.href = "register.html";
-      } else {
-        pageTitle.textContent = "Invalid link";
-        errorText.style.display = "block";
-        document.getElementById("spinner").style.display = "none";
+      } catch (error) {
+        console.error("Error checking room:", error);
+        statusText.textContent = "Error loading page";
+        loader.style.display = "none";
       }
     }
 
-    if (idFromLink) {
-      validateCode();
-    } else {
-      pageTitle.textContent = "Invalid link";
-      document.getElementById("spinner").style.display = "none";
-      errorText.style.display = "block";
-    }
+    validateRoom();
   </script>
 </body>
 </html>
