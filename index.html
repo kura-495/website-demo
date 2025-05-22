@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>B</title>
+  <title>A</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -193,36 +193,34 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const rtdb = getDatabase(app);
+    import { app, db } from "./firebase-config.js";
+    import { getDatabase, ref, push, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id");
-
-    // Show room info
+    const urlId = urlParams.get('id');
     const roomName = localStorage.getItem("scannedRoom");
-    const floorName = localStorage.getItem("scannedFloor");
-    document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
+    const floor = localStorage.getItem("scannedFloor");
+    
+    if (!urlId || !roomName || !floor) {
+    alert('Missing room information. Please try scanning the QR code again.');
+    window.location.href = 'qrlog.html';
+  } else {
+    const roomsRef = collection(db, 'rooms');
+    const snapshot = await getDocs(roomsRef);
+    let isMatch = false;
 
-    if (!id) {
-      alert("No room ID found in URL.");
-      window.location.href = "404.html";
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.roomName === roomName && data.floor === floor && data.id === urlId) {
+        isMatch = true;
+      }
+    });
+
+    if (!isMatch) {
+      alert('Invalid or tampered QR code. Please scan a valid code.');
+      window.location.href = 'qrlog.html';
     }
-
-    const docRef = doc(db, "rooms", id);
-    const docSnap = await getDoc(docRef);
-
-    if (!docSnap.exists()) {
-      alert("Room not found.");
-      window.location.href = "404.html";
-    }
-
+  }
 
     // Hide loading screen when ready
     window.addEventListener("load", () => {
