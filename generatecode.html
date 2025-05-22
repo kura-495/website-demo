@@ -30,6 +30,9 @@
       cursor: pointer;
       min-width: 220px;
     }
+    select[multiple] {
+      height: 150px;
+    }
     button {
       background-color: #0096c7;
       color: white;
@@ -112,12 +115,12 @@
     <i class="fas fa-home"></i>
   </div>
   <h1>Generate Code</h1>
-  <label for="roomSelect">Select Room to Generate Code:</label>
-  <select id="roomSelect">
+  <label for="roomSelect">Select Room(s) to Generate Code:</label>
+  <select id="roomSelect" multiple>
     <option value="all">-- All Rooms --</option>
   </select>
   <button id="changeLinkBtn">Generate Code</button>
-  <div id="message">Select a room or all rooms, then click "Generate Code".</div>
+  <div id="message">Select one or more rooms or "All Rooms", then click "Generate Code".</div>
 
   <script type="module">
     import { db } from './firebase-config.js';
@@ -159,10 +162,26 @@
       }
     }
 
+    // Handle disabling "all" if other rooms selected and vice versa
+    roomSelect.addEventListener("change", () => {
+      const selectedOptions = Array.from(roomSelect.selectedOptions).map(opt => opt.value);
+      if (selectedOptions.includes("all") && selectedOptions.length > 1) {
+        // If "all" is selected along with other rooms, deselect others
+        for (const option of roomSelect.options) {
+          if (option.value !== "all") option.selected = false;
+        }
+      } else if (!selectedOptions.includes("all") && selectedOptions.length > 0) {
+        // If any room except "all" is selected, deselect "all"
+        for (const option of roomSelect.options) {
+          if (option.value === "all") option.selected = false;
+        }
+      }
+    });
+
     changeLinkBtn.addEventListener("click", async () => {
-      const selectedValue = roomSelect.value;
-      if (!selectedValue) {
-        message.textContent = "Please select a room or 'All Rooms'.";
+      const selectedOptions = Array.from(roomSelect.selectedOptions).map(opt => opt.value);
+      if (selectedOptions.length === 0) {
+        message.textContent = "Please select at least one room or 'All Rooms'.";
         return;
       }
 
@@ -174,7 +193,8 @@
         const roomsCollection = collection(db, "rooms");
         let updatedRooms = [];
 
-        if (selectedValue === "all") {
+        if (selectedOptions.includes("all")) {
+          // Update all rooms
           const roomsSnapshot = await getDocs(roomsCollection);
           const updatePromises = [];
           roomsSnapshot.forEach(roomDoc => {
@@ -184,18 +204,21 @@
           });
           await Promise.all(updatePromises);
         } else {
-          const roomDocRef = doc(db, "rooms", selectedValue);
+          // Update selected rooms only
           const roomsSnapshot = await getDocs(roomsCollection);
-          let roomName = "";
-          for (const r of roomsSnapshot.docs) {
-            if (r.id === selectedValue) {
-              roomName = r.data().roomName;
-              break;
-            }
+          const roomsMap = new Map();
+          roomsSnapshot.forEach(docSnap => {
+            roomsMap.set(docSnap.id, docSnap.data());
+          });
+
+          const updatePromises = [];
+          for (const roomId of selectedOptions) {
+            const newCode = generateRandomCode(12);
+            const roomName = roomsMap.get(roomId)?.roomName || roomId;
+            updatedRooms.push({ roomName, newCode });
+            updatePromises.push(updateDoc(doc(db, "rooms", roomId), { code: newCode }));
           }
-          const newCode = generateRandomCode(12);
-          updatedRooms.push({ roomName: roomName || selectedValue, newCode });
-          await updateDoc(roomDocRef, { code: newCode });
+          await Promise.all(updatePromises);
         }
 
         let html = "<h2>Updated Room Codes:</h2><ul>";
@@ -238,9 +261,11 @@
         roomSelect.disabled = false;
       }
     });
-window.goHome = function () {
+
+    window.goHome = function () {
       window.location.href = "admin.html";
     };
+
     loadRooms();
   </script>
 </body>
