@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>E</title>
+  <title>F</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -195,14 +195,17 @@
   <script type="module">
     import { app, db } from "./firebase-config.js";
     import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const urlParams = new URLSearchParams(window.location.search);
     const inputId = urlParams.get('id');
     const roomName = localStorage.getItem("scannedRoom");
     const floor = localStorage.getItem("scannedFloor");
     
-    async function validateRoomId(idFromUrl) {
+    const urlParams = new URLSearchParams(window.location.search);
+const inputId = urlParams.get("id");
+
+async function validateRoomId(idFromUrl) {
   try {
     const roomsRef = collection(db, "rooms");
     const q = query(roomsRef, where("id", "==", idFromUrl));
@@ -224,9 +227,8 @@
 if (inputId) {
   validateRoomId(inputId);
 } else {
-  alert("No ID provided in URL.");
+  alert("❌ No ID provided in URL.");
 }
-
     // Hide loading screen when ready
     window.addEventListener("load", () => {
       const loadingScreen = document.getElementById("loadingScreen");
