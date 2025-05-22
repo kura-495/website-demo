@@ -149,150 +149,165 @@
 
   <div id="message">Select a room or rooms, then click "Generate Code".</div>
 
-  <script type="module">
-    import { db } from './firebase-config.js';
-    import {
-      collection,
-      getDocs,
-      doc,
-      updateDoc
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+ <script type="module">
+  import { db } from './firebase-config.js';
+  import {
+    collection,
+    getDocs,
+    doc,
+    updateDoc
+  } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    const roomSelect = document.getElementById("roomSelect");
-    const changeLinkBtn = document.getElementById("changeLinkBtn");
-    const message = document.getElementById("message");
-    const roomCheckboxList = document.getElementById("roomCheckboxList");
-    const multiSelectToggle = document.getElementById("multiSelectToggle");
+  const roomSelect = document.getElementById("roomSelect");
+  const changeLinkBtn = document.getElementById("changeLinkBtn");
+  const message = document.getElementById("message");
+  const roomCheckboxList = document.getElementById("roomCheckboxList");
+  const multiSelectToggle = document.getElementById("multiSelectToggle");
 
-    function generateRandomCode(length = 12) {
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      let result = "";
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
+  function generateRandomCode(length = 12) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
+    return result;
+  }
 
-    let roomDocs = [];
+  let roomDocs = [];
 
-    async function loadRooms() {
-      try {
-        const roomsCollection = collection(db, "rooms");
-        const roomsSnapshot = await getDocs(roomsCollection);
-        roomDocs = roomsSnapshot.docs;
+  async function loadRooms() {
+    try {
+      const roomsCollection = collection(db, "rooms");
+      const roomsSnapshot = await getDocs(roomsCollection);
+      roomDocs = roomsSnapshot.docs;
 
-        roomDocs.forEach(roomDoc => {
-          const roomId = roomDoc.id;
-          const roomName = roomDoc.data().roomName || roomId;
+      // Add 'All Rooms' option first
+      const allOption = document.createElement("option");
+      allOption.value = "all";
+      allOption.textContent = "All Rooms";
+      roomSelect.appendChild(allOption);
 
-          // Dropdown
-          const option = document.createElement("option");
-          option.value = roomId;
-          option.textContent = roomName;
-          roomSelect.appendChild(option);
+      roomDocs.forEach(roomDoc => {
+        const roomId = roomDoc.id;
+        const roomName = roomDoc.data().roomName || roomId;
 
-          // Checkbox
-          const label = document.createElement("label");
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.value = roomId;
-          label.appendChild(checkbox);
-          label.appendChild(document.createTextNode(" " + roomName));
-          roomCheckboxList.appendChild(label);
-        });
-      } catch (error) {
-        message.textContent = "Error loading rooms: " + error.message;
-        changeLinkBtn.disabled = true;
-      }
-    }
+        // Dropdown
+        const option = document.createElement("option");
+        option.value = roomId;
+        option.textContent = roomName;
+        roomSelect.appendChild(option);
 
-    multiSelectToggle.addEventListener("change", () => {
-      const isChecked = multiSelectToggle.checked;
-      roomSelect.style.display = isChecked ? "none" : "inline-block";
-      roomCheckboxList.style.display = isChecked ? "block" : "none";
-    });
-
-    changeLinkBtn.addEventListener("click", async () => {
-      const useMulti = multiSelectToggle.checked;
-      let selectedRooms = [];
-
-      if (useMulti) {
-        roomCheckboxList.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
-          selectedRooms.push(cb.value);
-        });
-      } else {
-        selectedRooms.push(roomSelect.value);
-      }
-
-      if (selectedRooms.length === 0 || selectedRooms.includes("")) {
-        message.textContent = "Please select at least one room.";
-        return;
-      }
-
-      message.textContent = "Updating codes...";
+        // Checkbox
+        const label = document.createElement("label");
+        label.style.display = "block";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = roomId;
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + roomName));
+        roomCheckboxList.appendChild(label);
+      });
+    } catch (error) {
+      message.textContent = "Error loading rooms: " + error.message;
       changeLinkBtn.disabled = true;
-      roomSelect.disabled = true;
+    }
+  }
 
-      try {
-        const updatedRooms = [];
-        const updatePromises = [];
+  multiSelectToggle.addEventListener("change", () => {
+    const isChecked = multiSelectToggle.checked;
+    roomSelect.style.display = isChecked ? "none" : "inline-block";
+    roomCheckboxList.style.display = isChecked ? "block" : "none";
+  });
 
-        for (const roomId of selectedRooms) {
-          const roomDocRef = doc(db, "rooms", roomId);
-          const roomData = roomDocs.find(r => r.id === roomId)?.data();
-          const newCode = generateRandomCode(12);
-          const roomName = roomData?.roomName || roomId;
+  changeLinkBtn.addEventListener("click", async () => {
+    const useMulti = multiSelectToggle.checked;
+    let selectedRooms = [];
 
-          updatedRooms.push({ roomName, newCode });
-          updatePromises.push(updateDoc(roomDocRef, { code: newCode }));
-        }
+    if (useMulti) {
+      roomCheckboxList.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
+        selectedRooms.push(cb.value);
+      });
+    } else {
+      const selectedValue = roomSelect.value;
+      if (selectedValue === "all") {
+        selectedRooms = roomDocs.map(doc => doc.id); // Select all rooms
+      } else {
+        selectedRooms.push(selectedValue);
+      }
+    }
 
-        await Promise.all(updatePromises);
+    // Remove empty selections or errors
+    selectedRooms = selectedRooms.filter(id => id);
 
-        let html = "<h2>Updated Room Codes:</h2><ul>";
-        updatedRooms.forEach(r => {
-          html += `
-            <li>
-              <div><strong>${r.roomName}:</strong></div>
-              <div class="link-container">
-                <div class="code-text">${r.newCode}</div>
-                <button class="copy-btn" data-code="${r.newCode}" title="Copy code">
-                  <i class="fa-solid fa-copy"></i>
-                </button>
-              </div>
-            </li>
-          `;
-        });
-        html += "</ul>";
-        message.innerHTML = html;
+    if (selectedRooms.length === 0) {
+      message.textContent = "Please select at least one valid room.";
+      return;
+    }
 
-        document.querySelectorAll(".copy-btn").forEach(button => {
-          button.addEventListener("click", () => {
-            const code = button.getAttribute("data-code");
-            navigator.clipboard.writeText(code).then(() => {
-              button.textContent = "Copied!";
-              setTimeout(() => {
-                button.innerHTML = '<i class="fa-solid fa-copy"></i>';
-              }, 1500);
-            }).catch(() => {
-              alert("Failed to copy code.");
-            });
+    message.textContent = "Updating codes...";
+    changeLinkBtn.disabled = true;
+    roomSelect.disabled = true;
+
+    try {
+      const updatedRooms = [];
+      const updatePromises = [];
+
+      for (const roomId of selectedRooms) {
+        const roomDocRef = doc(db, "rooms", roomId);
+        const roomData = roomDocs.find(r => r.id === roomId)?.data();
+        const newCode = generateRandomCode(12);
+        const roomName = roomData?.roomName || roomId;
+
+        updatedRooms.push({ roomName, newCode });
+        updatePromises.push(updateDoc(roomDocRef, { code: newCode }));
+      }
+
+      await Promise.all(updatePromises);
+
+      let html = "<h2>Updated Room Codes:</h2><ul>";
+      updatedRooms.forEach(r => {
+        html += `
+          <li>
+            <div><strong>${r.roomName}:</strong></div>
+            <div class="link-container">
+              <div class="code-text">${r.newCode}</div>
+              <button class="copy-btn" data-code="${r.newCode}" title="Copy code">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            </div>
+          </li>
+        `;
+      });
+      html += "</ul>";
+      message.innerHTML = html;
+
+      document.querySelectorAll(".copy-btn").forEach(button => {
+        button.addEventListener("click", () => {
+          const code = button.getAttribute("data-code");
+          navigator.clipboard.writeText(code).then(() => {
+            button.textContent = "Copied!";
+            setTimeout(() => {
+              button.innerHTML = '<i class="fa-solid fa-copy"></i>';
+            }, 1500);
+          }).catch(() => {
+            alert("Failed to copy code.");
           });
         });
+      });
 
-      } catch (error) {
-        message.textContent = "Error updating codes: " + error.message;
-      } finally {
-        changeLinkBtn.disabled = false;
-        roomSelect.disabled = false;
-      }
-    });
+    } catch (error) {
+      message.textContent = "Error updating codes: " + error.message;
+    } finally {
+      changeLinkBtn.disabled = false;
+      roomSelect.disabled = false;
+    }
+  });
 
-    window.goHome = function () {
-      window.location.href = "admin.html";
-    };
+  window.goHome = function () {
+    window.location.href = "admin.html";
+  };
 
-    loadRooms();
-  </script>
+  loadRooms();
+</script>
 </body>
 </html>
