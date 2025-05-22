@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Change Link</title>
+  <title>Change Room Links</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     body {
@@ -16,7 +16,6 @@
       min-height: 100vh;
       margin: 0;
       color: #0077b6;
-      position: relative;
     }
     h1 {
       margin-bottom: 20px;
@@ -46,60 +45,45 @@
     }
     #message {
       max-width: 900px;
+      width: 90%;
       text-align: left;
       background: white;
       padding: 15px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
       margin-top: 20px;
-      width: 100%;
       word-wrap: break-word;
     }
-    ul {
-      padding-left: 20px;
-      margin: 0;
-    }
-    li {
-      margin-bottom: 8px;
+    .link-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
-    a {
+    .room-name {
+      min-width: 150px;
+      font-weight: bold;
+      color: #023e8a;
+    }
+    .room-link {
+      flex: 1;
       color: #0077b6;
       text-decoration: none;
-      word-break: break-all;
-      flex-grow: 1;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    .home-icon {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 24px;
-      color: #0077b6;
-      cursor: pointer;
-      transition: color 0.3s;
-    }
-    .home-icon:hover {
-      color: #005f80;
+      overflow-wrap: anywhere;
     }
     .copy-btn {
-      background-color: #0077b6;
+      background-color: #0096c7;
       border: none;
-      padding: 6px 10px;
+      color: white;
+      padding: 6px 12px;
       border-radius: 6px;
       cursor: pointer;
-      color: white;
       font-size: 14px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       transition: background-color 0.3s;
-      min-width: 80px;
-      justify-content: center;
     }
     .copy-btn:hover {
       background-color: #005f80;
@@ -107,11 +91,7 @@
   </style>
 </head>
 <body>
-  <div class="home-icon" onclick="goHome()">
-    <i class="fas fa-home"></i>
-  </div>
-
-  <h1>Change Link</h1>
+  <h1>Change Links</h1>
   <label for="roomSelect">Select Room to Change Link:</label>
   <select id="roomSelect">
     <option value="all">-- All Rooms --</option>
@@ -159,22 +139,12 @@
       }
     }
 
-    function createCopyButton(url) {
-      const btn = document.createElement("button");
-      btn.className = "copy-btn";
-      btn.innerHTML = `<i class="fas fa-copy"></i> Copy`;
-      btn.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(url);
-          btn.textContent = "Copied!";
-          setTimeout(() => {
-            btn.innerHTML = `<i class="fas fa-copy"></i> Copy`;
-          }, 1500);
-        } catch (err) {
-          alert("Failed to copy: " + err);
-        }
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Link copied to clipboard!');
+      }).catch(err => {
+        alert('Failed to copy: ' + err);
       });
-      return btn;
     }
 
     changeLinkBtn.addEventListener("click", async () => {
@@ -216,29 +186,29 @@
           await updateDoc(roomDocRef, { code: newCode });
         }
 
-        // Clear message div and build list manually for buttons
-        message.innerHTML = "<h2>Updated Room Links:</h2>";
-        const ul = document.createElement("ul");
-
+        // Build the new HTML with flex layout and copy buttons
+        let html = "<h2>Updated Room Links:</h2>";
         updatedRooms.forEach(r => {
-          const li = document.createElement("li");
-
-          const link = document.createElement("a");
-          link.href = `https://kura-495.github.io/website-demo/index.html?id=${r.newCode}`;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.textContent = link.href;
-
-          li.innerHTML = `<strong>${r.roomName}:</strong> `;
-          li.appendChild(link);
-
-          const copyBtn = createCopyButton(link.href);
-          li.appendChild(copyBtn);
-
-          ul.appendChild(li);
+          const url = `https://kura-495.github.io/website-demo/index.html?id=${r.newCode}`;
+          html += `
+            <div class="link-row">
+              <div class="room-name">${r.roomName}:</div>
+              <a class="room-link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>
+              <button class="copy-btn" data-link="${url}" title="Copy link">
+                <i class="fas fa-copy"></i> Copy
+              </button>
+            </div>
+          `;
         });
 
-        message.appendChild(ul);
+        message.innerHTML = html;
+
+        // Attach copy event handlers to buttons
+        document.querySelectorAll(".copy-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            copyToClipboard(btn.getAttribute("data-link"));
+          });
+        });
 
       } catch (error) {
         message.textContent = "Error updating links: " + error.message;
@@ -249,12 +219,6 @@
     });
 
     loadRooms();
-  </script>
-
-  <script>
-    window.goHome = function () {
-      window.location.href = "admin.html";
-    };
   </script>
 </body>
 </html>
