@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Online Log</title>
+  <title>A</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -200,6 +200,20 @@
     const roomName = localStorage.getItem("scannedRoom");
     const floorName = localStorage.getItem("scannedFloor");
     document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
+
+    if (!id) {
+      alert("No room ID found in URL.");
+      window.location.href = "404.html";
+    }
+
+    const docRef = doc(db, "rooms", id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      alert("Room not found.");
+      window.location.href = "404.html";
+    }
+
 
     // Hide loading screen when ready
     window.addEventListener("load", () => {
