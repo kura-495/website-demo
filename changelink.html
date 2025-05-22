@@ -61,10 +61,15 @@
     }
     li {
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     a {
       color: #0077b6;
       text-decoration: none;
+      word-break: break-all;
+      flex-grow: 1;
     }
     a:hover {
       text-decoration: underline;
@@ -80,6 +85,24 @@
     }
     .home-icon:hover {
       color: #005f80;
+    }
+    .copy-btn {
+      background-color: #0077b6;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.3s;
+      min-width: 80px;
+      justify-content: center;
+    }
+    .copy-btn:hover {
+      background-color: #005f80;
     }
   </style>
 </head>
@@ -136,6 +159,24 @@
       }
     }
 
+    function createCopyButton(url) {
+      const btn = document.createElement("button");
+      btn.className = "copy-btn";
+      btn.innerHTML = `<i class="fas fa-copy"></i> Copy`;
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(url);
+          btn.textContent = "Copied!";
+          setTimeout(() => {
+            btn.innerHTML = `<i class="fas fa-copy"></i> Copy`;
+          }, 1500);
+        } catch (err) {
+          alert("Failed to copy: " + err);
+        }
+      });
+      return btn;
+    }
+
     changeLinkBtn.addEventListener("click", async () => {
       const selectedValue = roomSelect.value;
       if (!selectedValue) {
@@ -175,13 +216,30 @@
           await updateDoc(roomDocRef, { code: newCode });
         }
 
-        let html = "<h2>Updated Room Links:</h2><ul>";
-        updatedRooms.forEach(r => {
-          html += `<li><strong>${r.roomName}:</strong> <a href="https://kura-495.github.io/website-demo/index.html?id=${r.newCode}" target="_blank" rel="noopener noreferrer">https://kura-495.github.io/website-demo/index.html?id=${r.newCode}</a></li>`;
-        });
-        html += "</ul>";
+        // Clear message div and build list manually for buttons
+        message.innerHTML = "<h2>Updated Room Links:</h2>";
+        const ul = document.createElement("ul");
 
-        message.innerHTML = html;
+        updatedRooms.forEach(r => {
+          const li = document.createElement("li");
+
+          const link = document.createElement("a");
+          link.href = `https://kura-495.github.io/website-demo/index.html?id=${r.newCode}`;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = link.href;
+
+          li.innerHTML = `<strong>${r.roomName}:</strong> `;
+          li.appendChild(link);
+
+          const copyBtn = createCopyButton(link.href);
+          li.appendChild(copyBtn);
+
+          ul.appendChild(li);
+        });
+
+        message.appendChild(ul);
+
       } catch (error) {
         message.textContent = "Error updating links: " + error.message;
       } finally {
