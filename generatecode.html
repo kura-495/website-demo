@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Change Room Links</title>
+  <title>Generate Code</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     body {
@@ -62,14 +62,13 @@
     li {
       margin-bottom: 15px;
     }
-    a {
-      color: #0077b6;
-      text-decoration: none;
-      overflow-wrap: anywhere;
+    .code-text {
+      font-family: monospace;
+      background: #caf0f8;
+      padding: 6px 12px;
+      border-radius: 6px;
+      user-select: all;
       flex-grow: 1;
-    }
-    a:hover {
-      text-decoration: underline;
     }
     .copy-btn {
       background-color: #0096c7;
@@ -83,6 +82,7 @@
       justify-content: center;
       min-width: 50px;
       transition: background-color 0.3s;
+      margin-left: 10px;
     }
     .copy-btn:hover {
       background-color: #005f80;
@@ -96,13 +96,13 @@
   </style>
 </head>
 <body>
-  <h1>Change Links</h1>
-  <label for="roomSelect">Select Room to Change Link:</label>
+  <h1>Generate Code</h1>
+  <label for="roomSelect">Select Room to Generate Code:</label>
   <select id="roomSelect">
     <option value="all">-- All Rooms --</option>
   </select>
-  <button id="changeLinkBtn">Change Link</button>
-  <div id="message">Select a room or all rooms, then click "Change Link".</div>
+  <button id="changeLinkBtn">Generate Code</button>
+  <div id="message">Select a room or all rooms, then click "Generate Code".</div>
 
   <script type="module">
     import { db } from './firebase-config.js';
@@ -117,10 +117,10 @@
     const changeLinkBtn = document.getElementById("changeLinkBtn");
     const message = document.getElementById("message");
 
-    function generateRandomId() {
+    function generateRandomCode(length = 12) {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       let result = "";
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return result;
@@ -151,7 +151,7 @@
         return;
       }
 
-      message.textContent = "Updating links...";
+      message.textContent = "Updating codes...";
       changeLinkBtn.disabled = true;
       roomSelect.disabled = true;
 
@@ -163,7 +163,7 @@
           const roomsSnapshot = await getDocs(roomsCollection);
           const updatePromises = [];
           roomsSnapshot.forEach(roomDoc => {
-            const newCode = generateRandomId();
+            const newCode = generateRandomCode(12);
             updatedRooms.push({ roomName: roomDoc.data().roomName, newCode });
             updatePromises.push(updateDoc(doc(db, "rooms", roomDoc.id), { code: newCode }));
           });
@@ -178,21 +178,19 @@
               break;
             }
           }
-          const newCode = generateRandomId();
+          const newCode = generateRandomCode(12);
           updatedRooms.push({ roomName: roomName || selectedValue, newCode });
           await updateDoc(roomDocRef, { code: newCode });
         }
 
-        let html = "<h2>Updated Room Links:</h2><ul>";
+        let html = "<h2>Updated Room Codes:</h2><ul>";
         updatedRooms.forEach(r => {
           html += `
             <li>
               <div><strong>${r.roomName}:</strong></div>
               <div class="link-container">
-                <a href="https://kura-495.github.io/website-demo/index.html?id=${r.newCode}" target="_blank" rel="noopener noreferrer">
-                  https://kura-495.github.io/website-demo/index.html?id=${r.newCode}
-                </a>
-                <button class="copy-btn" data-link="https://kura-495.github.io/website-demo/index.html?id=${r.newCode}" title="Copy link">
+                <div class="code-text">${r.newCode}</div>
+                <button class="copy-btn" data-code="${r.newCode}" title="Copy code">
                   <i class="fa-solid fa-copy"></i>
                 </button>
               </div>
@@ -206,20 +204,20 @@
         // Add copy button event listeners
         document.querySelectorAll(".copy-btn").forEach(button => {
           button.addEventListener("click", () => {
-            const link = button.getAttribute("data-link");
-            navigator.clipboard.writeText(link).then(() => {
+            const code = button.getAttribute("data-code");
+            navigator.clipboard.writeText(code).then(() => {
               button.textContent = "Copied!";
               setTimeout(() => {
                 button.innerHTML = '<i class="fa-solid fa-copy"></i>';
               }, 1500);
             }).catch(() => {
-              alert("Failed to copy link.");
+              alert("Failed to copy code.");
             });
           });
         });
 
       } catch (error) {
-        message.textContent = "Error updating links: " + error.message;
+        message.textContent = "Error updating codes: " + error.message;
       } finally {
         changeLinkBtn.disabled = false;
         roomSelect.disabled = false;
