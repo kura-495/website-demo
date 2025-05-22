@@ -23,39 +23,20 @@
       height: 50px;
       animation: spin 1s linear infinite;
       margin-bottom: 10px;
-      display: none;
     }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
     h2 {
-      margin: 0 0 20px;
+      margin: 0;
       color: #1565c0;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #90caf9;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    button {
-      background-color: #42a5f5;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #1e88e5;
     }
   </style>
 </head>
 <body>
-  <h2>Enter Room Code</h2>
-  <input type="text" id="roomCodeInput" placeholder="Enter Code Here" />
-  <button id="submitBtn">Submit</button>
   <div class="loader" id="loader"></div>
-  <p id="statusText"></p>
+  <h2 id="statusText">Online Log</h2>
 
   <script type="module">
     import { db } from './firebase-config.js';
@@ -66,12 +47,16 @@
 
     const statusText = document.getElementById("statusText");
     const loader = document.getElementById("loader");
-    const input = document.getElementById("roomCodeInput");
-    const button = document.getElementById("submitBtn");
 
-    async function validateRoom(code) {
-      loader.style.display = "block";
-      statusText.textContent = "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+
+    async function validateRoom() {
+      if (!id) {
+        statusText.textContent = "Invalid link";
+        loader.style.display = "none";
+        return;
+      }
 
       try {
         const roomsRef = collection(db, "rooms");
@@ -81,7 +66,7 @@
 
         snapshot.forEach(doc => {
           const data = doc.data();
-          if (data.code === code) {
+          if (data.code === id) {
             localStorage.setItem("scannedRoom", data.roomName);
             localStorage.setItem("scannedFloor", data.floor);
             found = true;
@@ -91,24 +76,17 @@
         if (found) {
           window.location.href = "register.html";
         } else {
-          statusText.textContent = "Invalid code.";
+          statusText.textContent = "Invalid link";
           loader.style.display = "none";
         }
       } catch (error) {
         console.error("Error checking room:", error);
-        statusText.textContent = "Error loading page.";
+        statusText.textContent = "Error loading page";
         loader.style.display = "none";
       }
     }
 
-    button.addEventListener("click", () => {
-      const code = input.value.trim();
-      if (code === "") {
-        statusText.textContent = "Please enter a code.";
-        return;
-      }
-      validateRoom(code);
-    });
+    validateRoom();
   </script>
 </body>
 </html>
