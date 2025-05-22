@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QRLog - Validate</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #d0ebff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      color: #333;
+    }
+
+    .title {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .spinner {
+      border: 6px solid #e3f2fd;
+      border-top: 6px solid #339af0;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error {
+      color: red;
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="title" id="pageTitle">Online Log</div>
+  <div class="spinner" id="spinner"></div>
+  <div class="error" id="errorText" style="display: none;">Invalid link</div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-lite.js";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const idFromLink = urlParams.get('id');
+
+    const pageTitle = document.getElementById("pageTitle");
+    const errorText = document.getElementById("errorText");
+
+    async function validateCode() {
+      const roomsRef = collection(db, "rooms");
+      const snapshot = await getDocs(roomsRef);
+      let found = false;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.code === idFromLink) {
+          localStorage.setItem("scannedRoom", data.roomName);
+          localStorage.setItem("scannedFloor", data.floor);
+          found = true;
+        }
+      });
+
+      if (found) {
+        window.location.href = "register.html";
+      } else {
+        pageTitle.textContent = "Invalid link";
+        errorText.style.display = "block";
+        document.getElementById("spinner").style.display = "none";
+      }
+    }
+
+    if (idFromLink) {
+      validateCode();
+    } else {
+      pageTitle.textContent = "Invalid link";
+      document.getElementById("spinner").style.display = "none";
+      errorText.style.display = "block";
+    }
+  </script>
+</body>
+</html>
