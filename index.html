@@ -1,11 +1,9 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>L</title>
+  <title>Online Log</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -197,52 +195,12 @@
   <script type="module">
     import { app, db } from "./firebase-config.js";
     import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const inputId = urlParams.get('id');
+    // Show room info
     const roomName = localStorage.getItem("scannedRoom");
     const floorName = localStorage.getItem("scannedFloor");
+    document.getElementById("room-info").innerText = roomName ? `You are in: ${roomName} on the ${floorName}` : "Room info not found";
 
-async function validateRoomId(idFromUrl) {
-  try {
-    const roomsRef = collection(db, "rooms");
-    const q = query(roomsRef, where("id", "==", idFromUrl));
-    const querySnapshot = await getDocs(q);
-
-    const roomInfo = document.getElementById("room-info");
-
-    if (!querySnapshot.empty) {
-      console.log("✅ Valid room ID found.");
-      const doc = querySnapshot.docs[0];
-      const data = doc.data();
-
-      // Directly update UI with Firestore data
-      if (roomInfo) {
-        roomInfo.textContent = `${data.roomName} - ${data.floor}`;
-      }
-
-      // You can proceed with other logic here
-
-    } else {
-      alert("❌ Invalid room ID.");
-      if (roomInfo) roomInfo.textContent = "Room info not found.";
-      // Optional: you can redirect or disable the form here
-    }
-  } catch (error) {
-    console.error("Error checking ID:", error);
-  }
-}
-
-if (inputId) {
-  validateRoomId(inputId);
-} else {
-  alert("No ID provided in URL.");
-  const roomInfo = document.getElementById("room-info");
-  if (roomInfo) roomInfo.textContent = "Room info not found.";
-}
-
-  
     // Hide loading screen when ready
     window.addEventListener("load", () => {
       const loadingScreen = document.getElementById("loadingScreen");
