@@ -110,7 +110,7 @@
       margin-top: 10px;
       max-height: 200px;
       overflow-y: auto;
-      width: 220px;
+      width: 100%;
       border: 1px solid #0077b6;
       border-radius: 8px;
       padding: 10px;
@@ -137,15 +137,13 @@
   <select id="roomSelect">
     <option value="all">-- All Rooms --</option>
   </select>
-
+<div id="roomCheckboxList"></div>
   <div class="toggle-container">
     <label>
       <input type="checkbox" id="multiSelectToggle" />
       Select Multiple (Checkbox Mode)
     </label>
   </div>
-
-  <div id="roomCheckboxList"></div>
 
   <button id="changeLinkBtn">Generate Code</button>
 
