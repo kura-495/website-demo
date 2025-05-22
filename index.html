@@ -1,10 +1,11 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>K</title>
+  <title>L</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -193,148 +194,155 @@
     </form>
   </div>
 
-<script type="module">
-  import { app, db } from "./firebase-config.js";
-  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-  import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+  <script type="module">
+    import { app, db } from "./firebase-config.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const inputId = urlParams.get('id');
-  let roomName = "";
-  let floorName = "";
+    const urlParams = new URLSearchParams(window.location.search);
+    const inputId = urlParams.get('id');
+    const roomName = localStorage.getItem("scannedRoom");
+    const floorName = localStorage.getItem("scannedFloor");
 
-  async function validateRoomId(idFromUrl) {
-    try {
-      const roomsRef = collection(db, "rooms");
-      const q = query(roomsRef, where("id", "==", idFromUrl));
-      const querySnapshot = await getDocs(q);
+async function validateRoomId(idFromUrl) {
+  try {
+    const roomsRef = collection(db, "rooms");
+    const q = query(roomsRef, where("id", "==", idFromUrl));
+    const querySnapshot = await getDocs(q);
 
-      if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        const data = doc.data();
+    const roomInfo = document.getElementById("room-info");
 
-        roomName = data.roomName;
-        floorName = data.floor;
+    if (!querySnapshot.empty) {
+      console.log("✅ Valid room ID found.");
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
 
-        const roomInfo = document.getElementById("room-info");
-        if (roomInfo) {
-          roomInfo.textContent = `${roomName} - ${floorName}`;
-        }
-
-      } else {
-        alert("Invalid room ID.");
+      // Directly update UI with Firestore data
+      if (roomInfo) {
+        roomInfo.textContent = `${data.roomName} - ${data.floor}`;
       }
-    } catch (error) {
-      console.error("Error checking ID:", error);
-    }
-  }
 
-  if (inputId) {
-    await validateRoomId(inputId); // wait for it to complete before continuing
-  } else {
-    alert("No ID provided in URL.");
-  }
+      // You can proceed with other logic here
 
-  // Loading screen hide
-  window.addEventListener("load", () => {
-    const loadingScreen = document.getElementById("loadingScreen");
-    if (loadingScreen) {
-      setTimeout(() => {
-        loadingScreen.style.display = "none";
-      }, 1000);
-    }
-  });
-
-  function getPHTTimestamp() {
-    return new Date().toISOString().replace("Z", "+08:00");
-  }
-
-  const fileInput = document.getElementById("validID");
-  const filePreview = document.getElementById("filePreview");
-  const viewFileBtn = document.getElementById("viewFileBtn");
-  const progressContainer = document.getElementById("progressContainer");
-  const progressBar = document.getElementById("progressBar");
-  let fileBase64 = "";
-
-  fileInput.addEventListener("change", () => {
-    const file = fileInput.files[0];
-    if (file) {
-      const reader = new FileReader();
-
-      reader.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
-          progressContainer.style.display = "block";
-          progressBar.style.width = percent + "%";
-        }
-      };
-
-      reader.onloadstart = () => {
-        progressContainer.style.display = "block";
-        progressBar.style.width = "0%";
-      };
-
-      reader.onload = (event) => {
-        fileBase64 = event.target.result;
-        filePreview.src = fileBase64;
-        filePreview.style.display = "block";
-        viewFileBtn.style.display = "block";
-        progressBar.style.width = "100%";
-        setTimeout(() => { progressContainer.style.display = "none"; }, 1500);
-      };
-
-      reader.readAsDataURL(file);
     } else {
-      filePreview.style.display = "none";
-      viewFileBtn.style.display = "none";
-      progressContainer.style.display = "none";
-      fileBase64 = "";
+      alert("❌ Invalid room ID.");
+      if (roomInfo) roomInfo.textContent = "Room info not found.";
+      // Optional: you can redirect or disable the form here
     }
-  });
+  } catch (error) {
+    console.error("Error checking ID:", error);
+  }
+}
 
-  viewFileBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    if (fileBase64) {
-      const newTab = window.open();
-      newTab.document.write(`<img src="${fileBase64}" width="100%">`);
-    }
-  });
+if (inputId) {
+  validateRoomId(inputId);
+} else {
+  alert("No ID provided in URL.");
+  const roomInfo = document.getElementById("room-info");
+  if (roomInfo) roomInfo.textContent = "Room info not found.";
+}
 
-  document.getElementById("submitBtn").addEventListener("click", async () => {
-    const email = document.getElementById("email").value.trim();
-    const lastname = document.getElementById("lastname").value.trim();
-    const firstname = document.getElementById("firstname").value.trim();
-    const middlename = document.getElementById("middlename").value.trim();
-    const nameext = document.getElementById("nameext").value.trim();
-    const timeStatus = document.getElementById("timeStatus").value;
-    const purpose = document.getElementById("purpose").value;
-
-    if (!email || !lastname || !firstname || !purpose || !fileBase64) {
-      alert("Please fill in all required fields and upload a valid ID.");
-      return;
-    }
-
-    const dbRef = ref(getDatabase(), purpose.toLowerCase());
-    await push(dbRef, {
-      email,
-      lastname,
-      firstname,
-      middlename,
-      nameext,
-      room: roomName,
-      floor: floorName,
-      timeStatus,
-      purpose,
-      validID: fileBase64,
-      timestamp: getPHTTimestamp()
+  
+    // Hide loading screen when ready
+    window.addEventListener("load", () => {
+      const loadingScreen = document.getElementById("loadingScreen");
+      if (loadingScreen) {
+        setTimeout(() => {
+          loadingScreen.style.display = "none";
+        }, 1000);
+      }
     });
 
-    alert("Entry submitted successfully!");
-    document.getElementById("userForm").reset();
-    filePreview.style.display = "none";
-    viewFileBtn.style.display = "none";
-    fileBase64 = "";
-  });
-</script>
+    function getPHTTimestamp() {
+      return new Date().toISOString().replace("Z", "+08:00");
+    }
+
+    const fileInput = document.getElementById("validID");
+    const filePreview = document.getElementById("filePreview");
+    const viewFileBtn = document.getElementById("viewFileBtn");
+    const progressContainer = document.getElementById("progressContainer");
+    const progressBar = document.getElementById("progressBar");
+    let fileBase64 = "";
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            progressContainer.style.display = "block";
+            progressBar.style.width = percent + "%";
+          }
+        };
+
+        reader.onloadstart = () => {
+          progressContainer.style.display = "block";
+          progressBar.style.width = "0%";
+        };
+
+        reader.onload = (event) => {
+          fileBase64 = event.target.result;
+          filePreview.src = fileBase64;
+          filePreview.style.display = "block";
+          viewFileBtn.style.display = "block";
+          progressBar.style.width = "100%";
+          setTimeout(() => { progressContainer.style.display = "none"; }, 1500);
+        };
+
+        reader.readAsDataURL(file);
+      } else {
+        filePreview.style.display = "none";
+        viewFileBtn.style.display = "none";
+        progressContainer.style.display = "none";
+        fileBase64 = "";
+      }
+    });
+
+    viewFileBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (fileBase64) {
+        const newTab = window.open();
+        newTab.document.write(`<img src="${fileBase64}" width="100%">`);
+      }
+    });
+
+    document.getElementById("submitBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const lastname = document.getElementById("lastname").value.trim();
+      const firstname = document.getElementById("firstname").value.trim();
+      const middlename = document.getElementById("middlename").value.trim();
+      const nameext = document.getElementById("nameext").value.trim();
+      const timeStatus = document.getElementById("timeStatus").value;
+      const purpose = document.getElementById("purpose").value;
+
+      if (!email || !lastname || !firstname || !purpose || !fileBase64) {
+        alert("Please fill in all required fields and upload a valid ID.");
+        return;
+      }
+
+      const dbRef = ref(getDatabase(), purpose.toLowerCase());
+      await push(dbRef, {
+        email,
+        lastname,
+        firstname,
+        middlename,
+        nameext,
+        room: roomName,
+        floor: floorName,
+        timeStatus,
+        purpose,
+        validID: fileBase64,
+        timestamp: getPHTTimestamp()
+      });
+
+      alert("Entry submitted successfully!");
+      document.getElementById("userForm").reset();
+      filePreview.style.display = "none";
+      viewFileBtn.style.display = "none";
+      fileBase64 = "";
+    });
+  </script>
 </body>
 </html>
