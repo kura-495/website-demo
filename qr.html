@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Room Links QR</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e0f7ff;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #0077b6;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    select, button {
+      font-size: 16px;
+      padding: 8px 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #0077b6;
+      outline: none;
+      cursor: pointer;
+      min-width: 220px;
+    }
+    button {
+      background-color: #0096c7;
+      color: white;
+      border: none;
+      transition: background-color 0.3s;
+    }
+    button:hover:not(:disabled) {
+      background-color: #005f80;
+    }
+    button:disabled {
+      background-color: #a1c4d8;
+      cursor: not-allowed;
+    }
+    #message {
+      max-width: 800px;
+      width: 100%;
+      text-align: left;
+      background: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      margin-top: 20px;
+      word-wrap: break-word;
+    }
+    ul {
+      padding-left: 0;
+      margin: 0;
+      list-style: none;
+    }
+    li {
+      margin-bottom: 25px;
+    }
+    .link-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 5px;
+    }
+    .download-btn {
+      background-color: #0096c7;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 100px;
+      transition: background-color 0.3s;
+      font-size: 16px;
+    }
+    .download-btn:hover {
+      background-color: #005f80;
+    }
+    .qr-code {
+      width: 110px;
+      height: 110px;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generate Room QR Links</h1>
+  <label for="roomSelect">Select Room to Change Link:</label>
+  <select id="roomSelect">
+    <option value="all">-- All Rooms --</option>
+  </select>
+  <button id="changeLinkBtn">Change Link</button>
+  <div id="message">Select a room or all rooms, then click "Change Link".</div>
+
+  <!-- QRCode.js library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import {
+      collection,
+      getDocs,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const roomSelect = document.getElementById("roomSelect");
+    const changeLinkBtn = document.getElementById("changeLinkBtn");
+    const message = document.getElementById("message");
+
+    function generateRandomId() {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let result = "";
+      for (let i = 0; i < 7; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    async function loadRooms() {
+      try {
+        const roomsCollection = collection(db, "rooms");
+        const roomsSnapshot = await getDocs(roomsCollection);
+
+        roomsSnapshot.forEach(roomDoc => {
+          const roomName = roomDoc.data().roomName || roomDoc.id;
+          const option = document.createElement("option");
+          option.value = roomDoc.id;
+          option.textContent = roomName;
+          roomSelect.appendChild(option);
+        });
+      } catch (error) {
+        message.textContent = "Error loading rooms: " + error.message;
+        changeLinkBtn.disabled = true;
+      }
+    }
+
+    function downloadQRCode(containerId, roomName, code) {
+      // The QRCode library renders a div with a nested img or canvas inside
+      // Grab the first canvas or img inside container and trigger download
+      const container = document.getElementById(containerId);
+      // Try canvas first
+      const canvas = container.querySelector("canvas");
+      if (canvas) {
+        const dataURL = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.href = dataURL;
+        a.download = `${roomName}_QR.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      }
+      // Fallback: if img is there
+      const img = container.querySelector("img");
+      if (img) {
+        const a = document.createElement("a");
+        a.href = img.src;
+        a.download = `${roomName}_QR.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        alert("QR code not found for download.");
+      }
+    }
+
+    changeLinkBtn.addEventListener("click", async () => {
+      const selectedValue = roomSelect.value;
+      if (!selectedValue) {
+        message.textContent = "Please select a room or 'All Rooms'.";
+        return;
+      }
+
+      message.textContent = "Updating links...";
+      changeLinkBtn.disabled = true;
+      roomSelect.disabled = true;
+
+      try {
+        const roomsCollection = collection(db, "rooms");
+        let updatedRooms = [];
+
+        if (selectedValue === "all") {
+          const roomsSnapshot = await getDocs(roomsCollection);
+          const updatePromises = [];
+          roomsSnapshot.forEach(roomDoc => {
+            const newCode = generateRandomId();
+            updatedRooms.push({ roomName: roomDoc.data().roomName, newCode, id: roomDoc.id });
+            updatePromises.push(updateDoc(doc(db, "rooms", roomDoc.id), { code: newCode }));
+          });
+          await Promise.all(updatePromises);
+        } else {
+          const roomDocRef = doc(db, "rooms", selectedValue);
+          const roomsSnapshot = await getDocs(roomsCollection);
+          let roomName = "";
+          for (const r of roomsSnapshot.docs) {
+            if (r.id === selectedValue) {
+              roomName = r.data().roomName;
+              break;
+            }
+          }
+          const newCode = generateRandomId();
+          updatedRooms.push({ roomName: roomName || selectedValue, newCode, id: selectedValue });
+          await updateDoc(roomDocRef, { code: newCode });
+        }
+
+        let html = "<h2>Updated Room Links (QR Codes):</h2><ul>";
+        updatedRooms.forEach((r, i) => {
+          html += `
+            <li>
+              <div><strong>${r.roomName}:</strong></div>
+              <div class="link-container">
+                <div id="qrcode${i}" class="qr-code"></div>
+                <button class="download-btn" data-idx="${i}" title="Download QR code">
+                  <i class="fa-solid fa-download"></i> Download
+                </button>
+              </div>
+            </li>
+          `;
+        });
+        html += "</ul>";
+
+        message.innerHTML = html;
+
+        // Generate QR codes after inserting HTML
+        updatedRooms.forEach((r, i) => {
+          new QRCode(document.getElementById("qrcode"+i), {
+            text: `https://kura-495.github.io/website-demo/index.html?id=${r.newCode}`,
+            width: 110,
+            height: 110,
+            colorDark : "#0077b6",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+          });
+        });
+
+        // Add download button event listeners
+        document.querySelectorAll(".download-btn").forEach(button => {
+          button.addEventListener("click", () => {
+            const idx = button.getAttribute("data-idx");
+            const room = updatedRooms[idx];
+            downloadQRCode("qrcode" + idx, room.roomName, room.newCode);
+          });
+        });
+
+      } catch (error) {
+        message.textContent = "Error updating links: " + error.message;
+      } finally {
+        changeLinkBtn.disabled = false;
+        roomSelect.disabled = false;
+      }
+    });
+
+    loadRooms();
+  </script>
+</body>
+</html>
