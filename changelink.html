@@ -1,205 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Edit Room Name</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Change Room Links</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #e0f7ff;
+      background: #e0f7ff;
       padding: 20px;
-      text-align: center;
-    }
-
-    h1 {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
       color: #0077b6;
     }
-
-    .form-container {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      max-width: 400px;
-      margin: 30px auto;
+    h1 {
+      margin-bottom: 20px;
     }
-
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
+    select, button {
       font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
+      padding: 8px 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #0077b6;
+      outline: none;
+      cursor: pointer;
+      min-width: 220px;
     }
-
-    .button {
+    button {
       background-color: #0096c7;
       color: white;
       border: none;
-      cursor: pointer;
+      transition: background-color 0.3s;
     }
-
-    .button:hover {
+    button:hover:not(:disabled) {
       background-color: #005f80;
     }
-
-    .hidden {
-      display: none;
+    button:disabled {
+      background-color: #a1c4d8;
+      cursor: not-allowed;
     }
-
-    .message {
-      font-weight: bold;
-      margin: 10px 0;
+    #message {
+      max-width: 600px;
+      text-align: left;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      margin-top: 20px;
+      width: 100%;
+      word-wrap: break-word;
     }
-
-    .success {
-      color: green;
+    ul {
+      padding-left: 20px;
+      margin: 0;
     }
-
-    .error {
-      color: red;
+    li {
+      margin-bottom: 8px;
     }
-
-    .home-icon {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 24px;
-      cursor: pointer;
+    a {
       color: #0077b6;
-      background-color: #ffffff;
-      padding: 10px 12px;
-      border-radius: 50%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      transition: background-color 0.2s, color 0.2s;
+      text-decoration: none;
     }
-
-    .home-icon:hover {
-      background-color: #cce6ff;
-      color: #005f80;
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <i class="fas fa-home home-icon" onclick="window.location.href='admin.html'"></i>
-
-  <h1>Edit Room Name</h1>
-  <div class="form-container">
-    <select id="floorSelect">
-      <option value="">-- Select Floor --</option>
-      <option value="1st Floor">1st Floor</option>
-      <option value="2nd Floor">2nd Floor</option>
-    </select>
-
-    <select id="roomSelect" disabled>
-      <option value="">-- Select Room --</option>
-    </select>
-
-    <input type="text" id="newRoomName" placeholder="Enter New Room Name" />
-    <button class="button" onclick="updateRoomName()">Update Room Name</button>
-
-    <div id="message" class="message"></div>
-  </div>
+  <h1>Change Room Link IDs</h1>
+  <label for="roomSelect">Select Room to Change Link:</label>
+  <select id="roomSelect">
+    <option value="all">-- All Rooms --</option>
+  </select>
+  <button id="changeLinkBtn">Change Link</button>
+  <div id="message">Select a room or all rooms, then click "Change Link".</div>
 
   <script type="module">
-    import { db } from './firebase-config.js';
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      doc,
-      updateDoc,
-      query,
-      where
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+   import { app, db } from "./firebase-config.js";
+   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    const floorSelect = document.getElementById("floorSelect");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const roomSelect = document.getElementById("roomSelect");
-    const newRoomNameInput = document.getElementById("newRoomName");
-    const messageEl = document.getElementById("message");
+    const changeLinkBtn = document.getElementById("changeLinkBtn");
+    const message = document.getElementById("message");
 
-    let allRooms = [];
+    // Generate random 7-character alphanumeric ID
+    function generateRandomId() {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let result = "";
+      for (let i = 0; i < 7; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
 
-    floorSelect.addEventListener("change", async () => {
-      const selectedFloor = floorSelect.value;
-      roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
-      roomSelect.disabled = true;
-      newRoomNameInput.value = "";
-
-      if (!selectedFloor) return;
-
+    // Load rooms and populate the dropdown
+    async function loadRooms() {
       try {
-        const snapshot = await getDocs(collection(db, "rooms"));
-        allRooms = [];
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          allRooms.push({ id: docSnap.id, ...data });
-        });
+        const roomsCollection = collection(db, "rooms");
+        const roomsSnapshot = await getDocs(roomsCollection);
 
-        const filtered = allRooms.filter(r => r.floor === selectedFloor);
-        filtered.forEach(room => {
+        roomsSnapshot.forEach(roomDoc => {
+          const roomName = roomDoc.data().roomName || roomDoc.id;
           const option = document.createElement("option");
-          option.value = room.id;
-          option.textContent = room.roomName;
+          option.value = roomDoc.id;
+          option.textContent = roomName;
           roomSelect.appendChild(option);
         });
-
-        if (filtered.length > 0) {
-          roomSelect.disabled = false;
-        }
       } catch (error) {
-        showMessage("Failed to load rooms.", true);
-        console.error(error);
-      }
-    });
-
-    function showMessage(msg, isError = false) {
-      messageEl.textContent = msg;
-      messageEl.className = `message ${isError ? 'error' : 'success'}`;
-    
-      if (!isError) {
-        setTimeout(() => {
-          messageEl.textContent = '';
-        }, 3000);
+        message.textContent = "Error loading rooms: " + error.message;
+        changeLinkBtn.disabled = true;
       }
     }
 
-    window.updateRoomName = async function () {
-      const floor = floorSelect.value;
-      const roomId = roomSelect.value;
-      const newRoomName = newRoomNameInput.value.trim();
-
-      if (!floor || !roomId || !newRoomName) {
-        showMessage("Please fill in all fields.", true);
+    changeLinkBtn.addEventListener("click", async () => {
+      const selectedValue = roomSelect.value;
+      if (!selectedValue) {
+        message.textContent = "Please select a room or 'All Rooms'.";
         return;
       }
 
-      const duplicate = allRooms.find(room =>
-        room.roomName.toLowerCase() === newRoomName.toLowerCase()
-      );
-
-      if (duplicate && duplicate.id !== roomId) {
-        showMessage("Room name already exists.", true);
-        return;
-      }
+      message.textContent = "Updating links...";
+      changeLinkBtn.disabled = true;
+      roomSelect.disabled = true;
 
       try {
-        const roomRef = doc(db, "rooms", roomId);
-        await updateDoc(roomRef, { roomName: newRoomName });
-        showMessage("Room name updated successfully.");
+        const roomsCollection = collection(db, "rooms");
+        let updatedRooms = [];
 
-        floorSelect.selectedIndex = 0;
-        roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
-        roomSelect.disabled = true;
-        newRoomNameInput.value = "";
+        if (selectedValue === "all") {
+          // Update all rooms
+          const roomsSnapshot = await getDocs(roomsCollection);
+          const updatePromises = [];
+          roomsSnapshot.forEach(roomDoc => {
+            const newId = generateRandomId();
+            updatedRooms.push({ roomName: roomDoc.data().roomName, newId });
+            updatePromises.push(updateDoc(doc(db, "rooms", roomDoc.id), { id: newId }));
+          });
+          await Promise.all(updatePromises);
+        } else {
+          // Update one specific room
+          const roomDocRef = doc(db, "rooms", selectedValue);
+          const roomSnap = await getDocs(collection(db, "rooms"));
+          // Fetch roomName for selected room
+          const roomsSnapshot = await getDocs(roomsCollection);
+          let roomName = "";
+          for (const r of roomsSnapshot.docs) {
+            if (r.id === selectedValue) {
+              roomName = r.data().roomName;
+              break;
+            }
+          }
+          const newId = generateRandomId();
+          updatedRooms.push({ roomName: roomName || selectedValue, newId });
+          await updateDoc(roomDocRef, { id: newId });
+        }
+
+        // Display the new links
+        let html = "<h2>Updated Room Links:</h2><ul>";
+        updatedRooms.forEach(r => {
+          html += `<li><strong>${r.roomName}:</strong> <a href="https://kura-495.github.io/website-demo/index.html?id=${r.newId}" target="_blank" rel="noopener noreferrer">https://kura-495.github.io/website-demo/index.html?id=${r.newId}</a></li>`;
+        });
+        html += "</ul>";
+
+        message.innerHTML = html;
       } catch (error) {
-        console.error(error);
-        showMessage("Failed to update room name.", true);
+        message.textContent = "Error updating links: " + error.message;
+      } finally {
+        changeLinkBtn.disabled = false;
+        roomSelect.disabled = false;
       }
-    };
+    });
+
+    loadRooms();
   </script>
 </body>
 </html>
