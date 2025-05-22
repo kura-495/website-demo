@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>I</title>
+  <title>J</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -210,28 +210,25 @@ async function validateRoomId(idFromUrl) {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      console.log("Valid room ID found.");
-      // You can continue with your main logic here
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
+      localStorage.setItem("scannedRoom", data.roomName);
+      localStorage.setItem("scannedFloor", data.floorName);
+
+      const roomInfo = document.getElementById("room-info");
+      if (roomInfo) {
+        roomInfo.textContent = `${data.roomName} - ${data.floorName}`;
+      }
+
     } else {
-      alert("Invalid room ID.");
-      // Optionally redirect or hide the page content
+      alert("Invalid Link.");
     }
   } catch (error) {
     console.error("Error checking ID:", error);
   }
 }
 
-if (inputId) {
-  validateRoomId(inputId);
-} else {
-  alert("No ID provided in URL.");
-}
-    const roomInfo = document.getElementById("room-info");
-if (roomInfo && roomName && floorName) {
-  roomInfo.textContent = `${roomName} - ${floorName}`;
-} else {
-  roomInfo.textContent = "Room info not found.";
-}
+  
     // Hide loading screen when ready
     window.addEventListener("load", () => {
       const loadingScreen = document.getElementById("loadingScreen");
