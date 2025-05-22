@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Change Room Links</title>
+  <title>A</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -78,19 +78,14 @@
   <button id="changeLinkBtn">Change Link</button>
   <div id="message">Select a room or all rooms, then click "Change Link".</div>
 
-  <script type="module">
-   // firebase-config.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  // your config here
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-export { app, db };
+     <script type="module">
+    import {
+      db,
+      collection,
+      getDocs,
+      updateDoc,
+      doc
+    } from './firebase-config.js';
 
     const roomSelect = document.getElementById("roomSelect");
     const changeLinkBtn = document.getElementById("changeLinkBtn");
