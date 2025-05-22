@@ -105,7 +105,24 @@
     .home-icon:hover {
       color: #005f80;
     }
-    label[for="multiSelectToggle"] {
+    #roomCheckboxList {
+      display: none;
+      margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      width: 220px;
+      border: 1px solid #0077b6;
+      border-radius: 8px;
+      padding: 10px;
+      background: white;
+    }
+    #roomCheckboxList label {
+      display: block;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    .toggle-container {
+      margin-top: 10px;
       user-select: none;
     }
   </style>
@@ -115,18 +132,24 @@
     <i class="fas fa-home"></i>
   </div>
   <h1>Generate Code</h1>
-  <label for="roomSelect">Select Room to Generate Code:</label><br />
-  <select id="roomSelect" size="1">
+
+  <label for="roomSelect">Select Room:</label>
+  <select id="roomSelect">
     <option value="all">-- All Rooms --</option>
   </select>
 
-  <label style="margin-top:10px; user-select:none;">
-    <input type="checkbox" id="multiSelectToggle" />
-    Select Multiple
-  </label>
+  <div class="toggle-container">
+    <label>
+      <input type="checkbox" id="multiSelectToggle" />
+      Select Multiple (Checkbox Mode)
+    </label>
+  </div>
+
+  <div id="roomCheckboxList"></div>
 
   <button id="changeLinkBtn">Generate Code</button>
-  <div id="message">Select a room or all rooms, then click "Generate Code".</div>
+
+  <div id="message">Select a room or rooms, then click "Generate Code".</div>
 
   <script type="module">
     import { db } from './firebase-config.js';
@@ -138,9 +161,10 @@
     } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const roomSelect = document.getElementById("roomSelect");
-    const multiSelectToggle = document.getElementById("multiSelectToggle");
     const changeLinkBtn = document.getElementById("changeLinkBtn");
     const message = document.getElementById("message");
+    const roomCheckboxList = document.getElementById("roomCheckboxList");
+    const multiSelectToggle = document.getElementById("multiSelectToggle");
 
     function generateRandomCode(length = 12) {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -151,31 +175,32 @@
       return result;
     }
 
-    multiSelectToggle.addEventListener("change", () => {
-      if (multiSelectToggle.checked) {
-        roomSelect.setAttribute("multiple", "");
-        roomSelect.size = 6; // show multiple options
-      } else {
-        roomSelect.removeAttribute("multiple");
-        roomSelect.size = 1;
-        // If multiple rooms were selected, reset to first option on single select mode
-        if (roomSelect.selectedOptions.length > 1) {
-          roomSelect.value = roomSelect.options[0].value; // reset to first option
-        }
-      }
-    });
+    let roomDocs = [];
 
     async function loadRooms() {
       try {
         const roomsCollection = collection(db, "rooms");
         const roomsSnapshot = await getDocs(roomsCollection);
+        roomDocs = roomsSnapshot.docs;
 
-        roomsSnapshot.forEach(roomDoc => {
-          const roomName = roomDoc.data().roomName || roomDoc.id;
+        roomDocs.forEach(roomDoc => {
+          const roomId = roomDoc.id;
+          const roomName = roomDoc.data().roomName || roomId;
+
+          // Dropdown
           const option = document.createElement("option");
-          option.value = roomDoc.id;
+          option.value = roomId;
           option.textContent = roomName;
           roomSelect.appendChild(option);
+
+          // Checkbox
+          const label = document.createElement("label");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = roomId;
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(" " + roomName));
+          roomCheckboxList.appendChild(label);
         });
       } catch (error) {
         message.textContent = "Error loading rooms: " + error.message;
@@ -183,51 +208,48 @@
       }
     }
 
-    changeLinkBtn.addEventListener("click", async () => {
-      // Get selected options array
-      const selectedOptions = Array.from(roomSelect.selectedOptions).map(opt => opt.value);
+    multiSelectToggle.addEventListener("change", () => {
+      const isChecked = multiSelectToggle.checked;
+      roomSelect.style.display = isChecked ? "none" : "inline-block";
+      roomCheckboxList.style.display = isChecked ? "block" : "none";
+    });
 
-      if (selectedOptions.length === 0) {
-        message.textContent = "Please select one or more rooms, or 'All Rooms'.";
+    changeLinkBtn.addEventListener("click", async () => {
+      const useMulti = multiSelectToggle.checked;
+      let selectedRooms = [];
+
+      if (useMulti) {
+        roomCheckboxList.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
+          selectedRooms.push(cb.value);
+        });
+      } else {
+        selectedRooms.push(roomSelect.value);
+      }
+
+      if (selectedRooms.length === 0 || selectedRooms.includes("")) {
+        message.textContent = "Please select at least one room.";
         return;
       }
 
       message.textContent = "Updating codes...";
       changeLinkBtn.disabled = true;
       roomSelect.disabled = true;
-      multiSelectToggle.disabled = true;
 
       try {
-        const roomsCollection = collection(db, "rooms");
-        let updatedRooms = [];
+        const updatedRooms = [];
+        const updatePromises = [];
 
-        if (selectedOptions.includes("all")) {
-          const roomsSnapshot = await getDocs(roomsCollection);
-          const updatePromises = [];
-          roomsSnapshot.forEach(roomDoc => {
-            const newCode = generateRandomCode(12);
-            updatedRooms.push({ roomName: roomDoc.data().roomName, newCode });
-            updatePromises.push(updateDoc(doc(db, "rooms", roomDoc.id), { code: newCode }));
-          });
-          await Promise.all(updatePromises);
-        } else {
-          // Update only selected rooms
-          const updatePromises = selectedOptions.map(async roomId => {
-            const roomDocRef = doc(db, "rooms", roomId);
-            const roomsSnapshot = await getDocs(roomsCollection);
-            let roomName = "";
-            for (const r of roomsSnapshot.docs) {
-              if (r.id === roomId) {
-                roomName = r.data().roomName;
-                break;
-              }
-            }
-            const newCode = generateRandomCode(12);
-            updatedRooms.push({ roomName: roomName || roomId, newCode });
-            return updateDoc(roomDocRef, { code: newCode });
-          });
-          await Promise.all(updatePromises);
+        for (const roomId of selectedRooms) {
+          const roomDocRef = doc(db, "rooms", roomId);
+          const roomData = roomDocs.find(r => r.id === roomId)?.data();
+          const newCode = generateRandomCode(12);
+          const roomName = roomData?.roomName || roomId;
+
+          updatedRooms.push({ roomName, newCode });
+          updatePromises.push(updateDoc(roomDocRef, { code: newCode }));
         }
+
+        await Promise.all(updatePromises);
 
         let html = "<h2>Updated Room Codes:</h2><ul>";
         updatedRooms.forEach(r => {
@@ -244,10 +266,8 @@
           `;
         });
         html += "</ul>";
-
         message.innerHTML = html;
 
-        // Add copy button event listeners
         document.querySelectorAll(".copy-btn").forEach(button => {
           button.addEventListener("click", () => {
             const code = button.getAttribute("data-code");
@@ -267,7 +287,6 @@
       } finally {
         changeLinkBtn.disabled = false;
         roomSelect.disabled = false;
-        multiSelectToggle.disabled = false;
       }
     });
 
