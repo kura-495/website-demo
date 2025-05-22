@@ -282,9 +282,16 @@
 
       const dbRef = ref(getDatabase(), purpose.toLowerCase());
       await push(dbRef, {
-        email, lastname, firstname, middlename, nameext,
-        room: roomName, floor: floorName,
-        timeStatus, purpose, validID: fileBase64,
+        email,
+        lastname,
+        firstname,
+        middlename,
+        nameext,
+        room: roomName,
+        floor: floorName,
+        timeStatus,
+        purpose,
+        validID: fileBase64,
         timestamp: getPHTTimestamp()
       });
 
