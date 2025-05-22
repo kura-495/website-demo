@@ -70,7 +70,7 @@
   </style>
 </head>
 <body>
-  <h1>Change Room Link IDs</h1>
+  <h1>B</h1>
   <label for="roomSelect">Select Room to Change Link:</label>
   <select id="roomSelect">
     <option value="all">-- All Rooms --</option>
@@ -79,11 +79,18 @@
   <div id="message">Select a room or all rooms, then click "Change Link".</div>
 
   <script type="module">
-   import { app, db } from "./firebase-config.js";
-   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+   // firebase-config.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+const firebaseConfig = {
+  // your config here
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+export { app, db };
 
     const roomSelect = document.getElementById("roomSelect");
     const changeLinkBtn = document.getElementById("changeLinkBtn");
