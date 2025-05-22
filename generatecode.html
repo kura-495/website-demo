@@ -93,9 +93,24 @@
       gap: 10px;
       margin-top: 5px;
     }
+    .home-icon {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      color: #0077b6;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .home-icon:hover {
+      color: #005f80;
+    }
   </style>
 </head>
 <body>
+  <div class="home-icon" onclick="goHome()">
+    <i class="fas fa-home"></i>
+  </div>
   <h1>Generate Code</h1>
   <label for="roomSelect">Select Room to Generate Code:</label>
   <select id="roomSelect">
@@ -223,7 +238,9 @@
         roomSelect.disabled = false;
       }
     });
-
+window.goHome = function () {
+      window.location.href = "admin.html";
+    };
     loadRooms();
   </script>
 </body>
