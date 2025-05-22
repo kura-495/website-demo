@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>B</title>
+  <title>C</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -202,26 +202,30 @@
     const roomName = localStorage.getItem("scannedRoom");
     const floor = localStorage.getItem("scannedFloor");
     
-    if (!urlId || !roomName || !floor) {
-    alert('Missing room information. Please try scanning the QR code again.');
-    window.location.href = 'qrlog.html';
-  } else {
-    const roomsRef = collection(db, 'rooms');
-    const snapshot = await getDocs(roomsRef);
-    let isMatch = false;
+    async function validateRoomId(idFromUrl) {
+  try {
+    const roomsRef = collection(db, "rooms");
+    const q = query(roomsRef, where("id", "==", idFromUrl));
+    const querySnapshot = await getDocs(q);
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.roomName === roomName && data.floor === floor && data.id === urlId) {
-        isMatch = true;
-      }
-    });
-
-    if (!isMatch) {
-      alert('Invalid or tampered QR code. Please scan a valid code.');
-      window.location.href = 'qrlog.html';
+    if (!querySnapshot.empty) {
+      console.log("Valid room ID found.");
+      // You can continue with your main logic here
+    } else {
+      alert("Invalid room ID.");
+      // Optionally redirect or hide the page content
     }
+  } catch (error) {
+    console.error("Error checking ID:", error);
   }
+}
+
+// 🚀 Run the validation
+if (inputId) {
+  validateRoomId(inputId);
+} else {
+  alert("No ID provided in URL.");
+}
 
     // Hide loading screen when ready
     window.addEventListener("load", () => {
