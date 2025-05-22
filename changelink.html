@@ -44,49 +44,54 @@
       cursor: not-allowed;
     }
     #message {
-      max-width: 900px;
-      width: 90%;
+      max-width: 800px;
+      width: 100%;
       text-align: left;
       background: white;
-      padding: 15px;
+      padding: 15px 25px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
       margin-top: 20px;
       word-wrap: break-word;
     }
-    .link-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
+    ul {
+      padding-left: 0;
+      margin: 0;
+      list-style: none;
     }
-    .room-name {
-      min-width: 150px;
-      font-weight: bold;
-      color: #023e8a;
+    li {
+      margin-bottom: 15px;
     }
-    .room-link {
-      flex: 1;
+    a {
       color: #0077b6;
       text-decoration: none;
       overflow-wrap: anywhere;
+      flex-grow: 1;
+    }
+    a:hover {
+      text-decoration: underline;
     }
     .copy-btn {
       background-color: #0096c7;
       border: none;
       color: white;
+      cursor: pointer;
       padding: 6px 12px;
       border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      min-width: 50px;
       transition: background-color 0.3s;
     }
     .copy-btn:hover {
       background-color: #005f80;
+    }
+    .link-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 5px;
     }
   </style>
 </head>
@@ -139,14 +144,6 @@
       }
     }
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Link copied to clipboard!');
-      }).catch(err => {
-        alert('Failed to copy: ' + err);
-      });
-    }
-
     changeLinkBtn.addEventListener("click", async () => {
       const selectedValue = roomSelect.value;
       if (!selectedValue) {
@@ -186,27 +183,38 @@
           await updateDoc(roomDocRef, { code: newCode });
         }
 
-        // Build the new HTML with flex layout and copy buttons
-        let html = "<h2>Updated Room Links:</h2>";
+        let html = "<h2>Updated Room Links:</h2><ul>";
         updatedRooms.forEach(r => {
-          const url = `https://kura-495.github.io/website-demo/index.html?id=${r.newCode}`;
           html += `
-            <div class="link-row">
-              <div class="room-name">${r.roomName}:</div>
-              <a class="room-link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>
-              <button class="copy-btn" data-link="${url}" title="Copy link">
-                <i class="fas fa-copy"></i> Copy
-              </button>
-            </div>
+            <li>
+              <div><strong>${r.roomName}:</strong></div>
+              <div class="link-container">
+                <a href="https://kura-495.github.io/website-demo/index.html?id=${r.newCode}" target="_blank" rel="noopener noreferrer">
+                  https://kura-495.github.io/website-demo/index.html?id=${r.newCode}
+                </a>
+                <button class="copy-btn" data-link="https://kura-495.github.io/website-demo/index.html?id=${r.newCode}" title="Copy link">
+                  <i class="fa-solid fa-copy"></i>
+                </button>
+              </div>
+            </li>
           `;
         });
+        html += "</ul>";
 
         message.innerHTML = html;
 
-        // Attach copy event handlers to buttons
-        document.querySelectorAll(".copy-btn").forEach(btn => {
-          btn.addEventListener("click", () => {
-            copyToClipboard(btn.getAttribute("data-link"));
+        // Add copy button event listeners
+        document.querySelectorAll(".copy-btn").forEach(button => {
+          button.addEventListener("click", () => {
+            const link = button.getAttribute("data-link");
+            navigator.clipboard.writeText(link).then(() => {
+              button.textContent = "Copied!";
+              setTimeout(() => {
+                button.innerHTML = '<i class="fa-solid fa-copy"></i>';
+              }, 1500);
+            }).catch(() => {
+              alert("Failed to copy link.");
+            });
           });
         });
 
