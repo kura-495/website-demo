@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>QRLog - Validate</title>
+  <title>Online Log</title>
   <style>
     body {
       margin: 0;
@@ -50,8 +50,8 @@
   <div class="error" id="errorText" style="display: none;">Invalid link</div>
 
   <script type="module">
-    import { db } from './firebase-config.js';
-    import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-lite.js";
+import { db } from './firebase-config.js';
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
 
     const urlParams = new URLSearchParams(window.location.search);
     const idFromLink = urlParams.get('id');
