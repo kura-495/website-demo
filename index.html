@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>A</title>
+  <title>B</title>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
@@ -193,8 +193,17 @@
   </div>
 
   <script type="module">
-    import { app, db } from "./firebase-config.js";
-    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const rtdb = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
 
     // Show room info
     const roomName = localStorage.getItem("scannedRoom");
