@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>C</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,6 +16,7 @@
       min-height: 100vh;
       margin: 0;
       color: #0077b6;
+      position: relative;
     }
     h1 {
       margin-bottom: 20px;
@@ -67,9 +69,25 @@
     a:hover {
       text-decoration: underline;
     }
+    .home-icon {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      color: #0077b6;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .home-icon:hover {
+      color: #005f80;
+    }
   </style>
 </head>
 <body>
+  <div class="home-icon" onclick="goHome()">
+    <i class="fas fa-home"></i>
+  </div>
+
   <h1>B</h1>
   <label for="roomSelect">Select Room to Change Link:</label>
   <select id="roomSelect">
@@ -173,6 +191,12 @@
     });
 
     loadRooms();
+  </script>
+
+  <script>
+    window.goHome = function () {
+      window.location.href = "admin.html";
+    };
   </script>
 </body>
 </html>
