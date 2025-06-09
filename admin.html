@@ -237,30 +237,57 @@
       window.location.href = 'generatecode.html';
     });
 
-    clearRecordsBtn.addEventListener('click', async () => {
-  const confirmed = confirm("Are you sure you want to delete all student and training records? This action cannot be undone.");
+    import { remove, ref } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
+
+clearRecordsBtn.addEventListener('click', async () => {
+  const displayedCards = document.querySelectorAll('.record-card'); // adjust class if needed
+
+  if (displayedCards.length === 0) {
+    alert('No records to delete.');
+    return;
+  }
+
+  const choice = prompt(
+    'Which records do you want to delete?\n\nOptions:\n- "student" (only student records)\n- "training" (only training records)\n- "all" (all displayed records)'
+  );
+
+  if (!choice) return;
+
+  const selectedType = choice.toLowerCase().trim();
+  if (!['student', 'training', 'all'].includes(selectedType)) {
+    alert('Invalid option. Please type "student", "training", or "all".');
+    return;
+  }
+
+  const confirmed = confirm(`Are you sure you want to delete the displayed ${selectedType} records? This cannot be undone.`);
   if (!confirmed) return;
 
   try {
     const dbInstance = getDatabase();
+    const deletePromises = [];
 
-    await Promise.all([
-      remove(ref(dbInstance, 'student')),
-      remove(ref(dbInstance, 'assessment'))
-    ]);
+    displayedCards.forEach(card => {
+      const key = card.getAttribute('data-key');
+      const userType = card.getAttribute('data-user-type');
 
-    alert('All student and training records have been deleted.');
-    fetchData(); // Refresh displayed data
+      const shouldDelete =
+        selectedType === 'all' || userType === selectedType;
+
+      if (shouldDelete && key && userType) {
+        const recordRef = ref(dbInstance, `${userType}/${key}`);
+        deletePromises.push(remove(recordRef));
+      }
+    });
+
+    await Promise.all(deletePromises);
+
+    alert(`Displayed ${selectedType} records deleted successfully.`);
+    fetchData(); // Refresh or re-filter data
   } catch (error) {
-    console.error('Error clearing records:', error);
-    alert('Failed to clear records. Please try again later.');
+    console.error('Error deleting records:', error);
+    alert('An error occurred while deleting records.');
   }
 });
-
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('isLoggedIn');
-      location.reload();
-    });
 
     if (localStorage.getItem('isLoggedIn') === 'true') {
       loginSection.style.display = 'none';
