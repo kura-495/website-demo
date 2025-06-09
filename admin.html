@@ -242,7 +242,7 @@
     const downloadPdfBtn = document.getElementById('downloadPdf');
 
 downloadPdfBtn.addEventListener('click', () => {
-  if (displayedData.length === 0) {
+  if (filteredRecords.length === 0) {
     alert('No records to download.');
     return;
   }
@@ -251,7 +251,7 @@ downloadPdfBtn.addEventListener('click', () => {
   const doc = new jsPDF();
 
   const tableHeaders = ['Name', 'Email', 'Date', 'Time Status', 'Purpose', 'Room', 'Floor'];
-  const tableData = displayedData.map(item => [
+  const tableData = filteredRecords.map(item => [
     item.fullName || '',
     item.email || '',
     item.date || '',
