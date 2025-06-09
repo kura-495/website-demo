@@ -3,109 +3,175 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clear Records</title>
+  <title>Clear Records - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #e0f7ff;
-      padding: 20px;
+      margin: 0; padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
       color: #0077b6;
-      text-align: center;
     }
     h1 {
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
-    .btn {
-      display: block;
-      margin: 10px auto;
-      padding: 10px 20px;
-      font-size: 16px;
+    #buttons-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      max-width: 600px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    button {
       background-color: #0096c7;
-      color: white;
       border: none;
+      color: white;
+      padding: 12px 20px;
       border-radius: 8px;
+      font-size: 16px;
       cursor: pointer;
-      width: 250px;
+      min-width: 160px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       transition: background-color 0.3s;
     }
-    .btn:hover {
+    button:hover:not(:disabled) {
       background-color: #005f80;
     }
-    .btn:disabled {
+    button:disabled {
       background-color: #a1c4d8;
       cursor: not-allowed;
+    }
+    #status {
+      margin-top: 25px;
+      max-width: 600px;
+      min-height: 30px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Clear Records</h1>
-  <button class="btn" id="clearAllBtn">🧹 Clear All Records</button>
-  <div id="buttonsContainer"></div>
+  <h1>Clear Records in Realtime Database</h1>
+  <p>Click a button below to clear that node. You will be asked to confirm with the admin password.</p>
+  <div id="buttons-container"></div>
+  <div id="status"></div>
 
   <script type="module">
-    import { rtdb } from './firebase-config.js'; // this must match the export
-    import {
-    ref,
-    get,
-    remove
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { db } from './firebase-config.js';
+    import { ref, get, child, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
+    const buttonsContainer = document.getElementById("buttons-container");
+    const statusDiv = document.getElementById("status");
 
-    const buttonsContainer = document.getElementById("buttonsContainer");
-    const clearAllBtn = document.getElementById("clearAllBtn");
-
-    async function getAdminPassword() {
-      const snapshot = await get(ref(db, 'accounts/admin/p_word'));
-      return snapshot.exists() ? snapshot.val() : null;
-    }
-
-    async function loadTreeKeys() {
-      const snapshot = await get(ref(db));
-      if (snapshot.exists()) {
+    async function fetchTopLevelNodes() {
+      statusDiv.textContent = "Loading database nodes...";
+      try {
+        const dbRef = ref(db);
+        const snapshot = await get(dbRef);
+        if (!snapshot.exists()) {
+          statusDiv.textContent = "Database is empty.";
+          return [];
+        }
         const data = snapshot.val();
         return Object.keys(data).filter(key => key !== "accounts");
+      } catch (err) {
+        statusDiv.textContent = "Error loading database: " + err.message;
+        return [];
       }
-      return [];
     }
 
-    async function confirmAndDelete(path) {
-      const input = prompt(`Enter admin password to delete "${path}"`);
+    async function getAdminPassword() {
+      try {
+        const pWordSnap = await get(child(ref(db), "accounts/admin/p_word"));
+        return pWordSnap.exists() ? pWordSnap.val() : null;
+      } catch (err) {
+        statusDiv.textContent = "Error fetching admin password: " + err.message;
+        return null;
+      }
+    }
+
+    function createButton(text, iconClass, id) {
+      const btn = document.createElement("button");
+      btn.textContent = text;
+      if(iconClass) {
+        const icon = document.createElement("i");
+        icon.className = iconClass;
+        btn.prepend(icon);
+      }
+      btn.dataset.nodeId = id || text.toLowerCase().replace(/\s/g, "_");
+      return btn;
+    }
+
+    async function clearNode(nodeKey) {
+      statusDiv.textContent = `Clearing "${nodeKey}"...`;
+      try {
+        await remove(ref(db, nodeKey));
+        statusDiv.textContent = `✅ Cleared "${nodeKey}" successfully.`;
+      } catch (err) {
+        statusDiv.textContent = `❌ Error clearing "${nodeKey}": ${err.message}`;
+      }
+    }
+
+    async function clearAllExceptAccounts(nodes) {
+      statusDiv.textContent = "Clearing all records...";
+      try {
+        await Promise.all(nodes.map(key => remove(ref(db, key))));
+        statusDiv.textContent = "✅ All records cleared (excluding 'accounts').";
+      } catch (err) {
+        statusDiv.textContent = `❌ Error clearing all records: ${err.message}`;
+      }
+    }
+
+    async function promptPasswordAndClear(nodeKey, allNodes = null) {
       const adminPassword = await getAdminPassword();
-      if (input === adminPassword) {
-        await remove(ref(db, path));
-        alert(`"${path}" records cleared.`);
+      if (!adminPassword) {
+        alert("Admin password not found.");
+        return;
+      }
+
+      const input = prompt(`Enter admin password to confirm deleting "${nodeKey === 'all' ? 'ALL RECORDS' : nodeKey}"`);
+      if (input === null) {
+        statusDiv.textContent = "Cancelled.";
+        return;
+      }
+
+      if (input !== adminPassword) {
+        alert("Incorrect password.");
+        statusDiv.textContent = "Incorrect password entered.";
+        return;
+      }
+
+      if (nodeKey === "all" && allNodes) {
+        await clearAllExceptAccounts(allNodes);
       } else {
-        alert("Incorrect password. Deletion aborted.");
+        await clearNode(nodeKey);
       }
     }
 
-    async function setup() {
-      const keys = await loadTreeKeys();
+    async function init() {
+      const nodes = await fetchTopLevelNodes();
+      buttonsContainer.innerHTML = "";
 
-      // Create Clear All button handler
-      clearAllBtn.onclick = async () => {
-        const input = prompt("Enter admin password to delete ALL records");
-        const adminPassword = await getAdminPassword();
-        if (input === adminPassword) {
-          const deletePromises = keys.map(key => remove(ref(db, key)));
-          await Promise.all(deletePromises);
-          alert("All records cleared.");
-        } else {
-          alert("Incorrect password. Deletion aborted.");
-        }
-      };
+      const allBtn = createButton("Clear All Records", "fa-solid fa-trash");
+      allBtn.addEventListener("click", () => promptPasswordAndClear("all", nodes));
+      buttonsContainer.appendChild(allBtn);
 
-      // Create individual buttons
-      keys.forEach(key => {
-        const btn = document.createElement("button");
-        btn.className = "btn";
-        btn.textContent = `Clear "${key}" Records`;
-        btn.onclick = () => confirmAndDelete(key);
+      nodes.forEach(nodeKey => {
+        const btn = createButton(`Clear "${nodeKey}"`, "fa-solid fa-trash-can", nodeKey);
+        btn.addEventListener("click", () => promptPasswordAndClear(nodeKey));
         buttonsContainer.appendChild(btn);
       });
+
+      statusDiv.textContent = "Ready.";
     }
 
-    setup();
+    init();
   </script>
 </body>
 </html>
