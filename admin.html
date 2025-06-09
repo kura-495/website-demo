@@ -246,7 +246,7 @@
 
     await Promise.all([
       remove(ref(dbInstance, 'student')),
-      remove(ref(dbInstance, 'assessment'))
+      //remove(ref(dbInstance, 'assessment'))
     ]);
 
     alert('All student and training records have been deleted.');
