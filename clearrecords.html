@@ -68,147 +68,132 @@
 
   <script type="module">
     import { db } from './firebase-config.js';
-    import {
-      ref,
-      get,
-      remove,
-      child
-    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+import { ref, get, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-    const buttonsContainer = document.getElementById("buttons-container");
-    const clearAllBtn = document.getElementById("clearAllBtn");
-    const statusEl = document.getElementById("status");
+const buttonsContainer = document.getElementById("buttons-container");
+const clearAllBtn = document.getElementById("clearAllBtn");
+const statusEl = document.getElementById("status");
 
-    // Show status messages
-    function setStatus(msg, isError = false) {
-      statusEl.textContent = msg;
-      statusEl.style.color = isError ? "red" : "#0077b6";
+function setStatus(msg, isError = false) {
+  statusEl.textContent = msg;
+  statusEl.style.color = isError ? "red" : "#0077b6";
+}
+
+async function promptPassword() {
+  return new Promise((resolve) => {
+    const pwd = prompt("Enter admin password to confirm deletion:");
+    resolve(pwd);
+  });
+}
+
+async function verifyPassword(inputPwd) {
+  try {
+    const pwdSnapshot = await get(ref(db, 'accounts/admin/p_word'));
+    if (!pwdSnapshot.exists()) {
+      setStatus("Admin password not found in database.", true);
+      return false;
     }
+    const storedPwd = pwdSnapshot.val();
+    return storedPwd === inputPwd;
+  } catch (err) {
+    setStatus("Error verifying password: " + err.message, true);
+    return false;
+  }
+}
 
-    // Prompt user for password confirmation
-    async function promptPassword() {
-      return new Promise((resolve) => {
-        const pwd = prompt("Enter admin password to confirm deletion:");
-        resolve(pwd);
-      });
-    }
-
-    // Verify password from database
-    async function verifyPassword(inputPwd) {
-      try {
-        const pwdSnapshot = await get(ref(db, 'accounts/admin/p_word'));
-        if (!pwdSnapshot.exists()) {
-          setStatus("Admin password not found in database.", true);
-          return false;
-        }
-        const storedPwd = pwdSnapshot.val();
-        return storedPwd === inputPwd;
-      } catch (err) {
-        setStatus("Error verifying password: " + err.message, true);
-        return false;
-      }
-    }
-
-    // Delete one or more nodes from database
-    async function deleteNodes(nodesToDelete) {
-      try {
-        setStatus("Deleting records...");
-        // Remove each node by ref
-        const promises = nodesToDelete.map(node =>
-          remove(ref(db, node))
-        );
-        await Promise.all(promises);
-        setStatus("Deletion successful.");
-        // Refresh buttons after deletion
-        loadNodes();
-      } catch (err) {
-        setStatus("Error deleting records: " + err.message, true);
-      }
-    }
-
-    // Load top-level nodes and create buttons (excluding "accounts")
-    async function loadNodes() {
-      try {
-        const rootRef = ref(db);
-        const snapshot = await get(rootRef);
-        buttonsContainer.querySelectorAll('button:not(#clearAllBtn)').forEach(b => b.remove());
-        if (!snapshot.exists()) {
-          setStatus("No data found.");
-          return;
-        }
-        const data = snapshot.val();
-        // Filter keys except 'accounts'
-        const keys = Object.keys(data).filter(k => k !== 'accounts');
-        if (keys.length === 0) {
-          setStatus("No records found except 'accounts'.");
-          return;
-        }
-        keys.forEach(key => {
-          const btn = document.createElement("button");
-          btn.innerHTML = `<i class="fa-solid fa-trash"></i> Clear "${key}"`;
-          btn.dataset.node = key;
-          buttonsContainer.appendChild(btn);
-
-          btn.addEventListener("click", async () => {
-            const confirmPwd = await promptPassword();
-            if (!confirmPwd) {
-              setStatus("Deletion canceled.");
-              return;
-            }
-            setStatus("Verifying password...");
-            const valid = await verifyPassword(confirmPwd);
-            if (!valid) {
-              setStatus("Invalid password. Deletion aborted.", true);
-              return;
-            }
-            if (confirm(`Are you sure you want to delete all records under "${key}"? This action cannot be undone.`)) {
-              await deleteNodes([key]);
-            } else {
-              setStatus("Deletion canceled.");
-            }
-          });
-        });
-      } catch (err) {
-        setStatus("Error loading nodes: " + err.message, true);
-      }
-    }
-
-    clearAllBtn.addEventListener("click", async () => {
-      const confirmPwd = await promptPassword();
-      if (!confirmPwd) {
-        setStatus("Deletion canceled.");
-        return;
-      }
-      setStatus("Verifying password...");
-      const valid = await verifyPassword(confirmPwd);
-      if (!valid) {
-        setStatus("Invalid password. Deletion aborted.", true);
-        return;
-      }
-      if (confirm("Are you sure you want to delete ALL records except 'accounts'? This action cannot be undone.")) {
-        try {
-          setStatus("Deleting all records...");
-          // Get all root keys except 'accounts'
-          const rootSnap = await get(ref(db));
-          if (!rootSnap.exists()) {
-            setStatus("No data found.");
-            return;
-          }
-          const allKeys = Object.keys(rootSnap.val()).filter(k => k !== "accounts");
-          if (allKeys.length === 0) {
-            setStatus("No records to delete.");
-            return;
-          }
-          await deleteNodes(allKeys);
-        } catch (error) {
-          setStatus("Error deleting all records: " + error.message, true);
-        }
-      } else {
-        setStatus("Deletion canceled.");
-      }
-    });
-
+async function deleteNodes(nodesToDelete) {
+  try {
+    setStatus("Deleting records...");
+    const promises = nodesToDelete.map(node => remove(ref(db, node)));
+    await Promise.all(promises);
+    setStatus("Deletion successful.");
     loadNodes();
+  } catch (err) {
+    setStatus("Error deleting records: " + err.message, true);
+  }
+}
+
+async function loadNodes() {
+  try {
+    // IMPORTANT: get the root ref like this, not ref() without params
+    const rootRef = ref(db, '/');
+    const snapshot = await get(rootRef);
+    buttonsContainer.querySelectorAll('button:not(#clearAllBtn)').forEach(b => b.remove());
+    if (!snapshot.exists()) {
+      setStatus("No data found.");
+      return;
+    }
+    const data = snapshot.val();
+    const keys = Object.keys(data).filter(k => k !== 'accounts');
+    if (keys.length === 0) {
+      setStatus("No records found except 'accounts'.");
+      return;
+    }
+    keys.forEach(key => {
+      const btn = document.createElement("button");
+      btn.innerHTML = `<i class="fa-solid fa-trash"></i> Clear "${key}"`;
+      btn.dataset.node = key;
+      buttonsContainer.appendChild(btn);
+
+      btn.addEventListener("click", async () => {
+        const confirmPwd = await promptPassword();
+        if (!confirmPwd) {
+          setStatus("Deletion canceled.");
+          return;
+        }
+        setStatus("Verifying password...");
+        const valid = await verifyPassword(confirmPwd);
+        if (!valid) {
+          setStatus("Invalid password. Deletion aborted.", true);
+          return;
+        }
+        if (confirm(`Are you sure you want to delete all records under "${key}"? This action cannot be undone.`)) {
+          await deleteNodes([key]);
+        } else {
+          setStatus("Deletion canceled.");
+        }
+      });
+    });
+  } catch (err) {
+    setStatus("Error loading nodes: " + err.message, true);
+  }
+}
+
+clearAllBtn.addEventListener("click", async () => {
+  const confirmPwd = await promptPassword();
+  if (!confirmPwd) {
+    setStatus("Deletion canceled.");
+    return;
+  }
+  setStatus("Verifying password...");
+  const valid = await verifyPassword(confirmPwd);
+  if (!valid) {
+    setStatus("Invalid password. Deletion aborted.", true);
+    return;
+  }
+  if (confirm("Are you sure you want to delete ALL records except 'accounts'? This action cannot be undone.")) {
+    try {
+      setStatus("Deleting all records...");
+      const rootSnap = await get(ref(db, '/'));
+      if (!rootSnap.exists()) {
+        setStatus("No data found.");
+        return;
+      }
+      const allKeys = Object.keys(rootSnap.val()).filter(k => k !== "accounts");
+      if (allKeys.length === 0) {
+        setStatus("No records to delete.");
+        return;
+      }
+      await deleteNodes(allKeys);
+    } catch (error) {
+      setStatus("Error deleting all records: " + error.message, true);
+    }
+  } else {
+    setStatus("Deletion canceled.");
+  }
+});
+
+loadNodes();
   </script>
 </body>
 </html>
