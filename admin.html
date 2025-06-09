@@ -192,7 +192,8 @@
       getDatabase,
       ref,
       get,
-      child
+      child,
+      remove
     } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js';
 
     const loginSection = document.getElementById('loginSection');
@@ -236,9 +237,25 @@
       window.location.href = 'generatecode.html';
     });
 
-    clearRecordsBtn.addEventListener('click', () => {
-      window.location.href = 'clearrecords.html';
-    });
+    clearRecordsBtn.addEventListener('click', async () => {
+  const confirmed = confirm("Are you sure you want to delete all student and training records? This action cannot be undone.");
+  if (!confirmed) return;
+
+  try {
+    const dbInstance = getDatabase();
+
+    await Promise.all([
+      remove(ref(dbInstance, 'student')),
+      remove(ref(dbInstance, 'training'))
+    ]);
+
+    alert('All student and training records have been deleted.');
+    fetchData(); // Refresh displayed data
+  } catch (error) {
+    console.error('Error clearing records:', error);
+    alert('Failed to clear records. Please try again later.');
+  }
+});
 
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('isLoggedIn');
