@@ -337,10 +337,8 @@ downloadPdfBtn.addEventListener('click', () => {
     dateFilter.addEventListener('change', fetchData);
     floorFilter.addEventListener('change', fetchData);
 
-    let displayedData = [];
     async function fetchData() {
       recordsContainer.innerHTML = '';
-      displayedData = filteredData;
       const selectedUser = userTypeFilter.value;
       const selectedStatus = timeStatusFilter.value;
       const selectedDate = dateFilter.value;
@@ -348,7 +346,7 @@ downloadPdfBtn.addEventListener('click', () => {
 
       const types = ['assessment', 'training'];
       const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
-
+      const filteredRecords = [];
       for (const type of fetchTypes) {
         const dbRef = ref(getDatabase(), type);
         const snapshot = await get(dbRef);
@@ -380,6 +378,18 @@ downloadPdfBtn.addEventListener('click', () => {
                   timeZone: 'Asia/Bangkok'
                 })
               : 'N/A';
+
+          filteredRecords.push({
+          userType: type,
+          email: entry.email || 'N/A',
+          name: `${entry.firstname || ''} ${entry.middlename || ''} ${entry.lastname || ''} ${entry.nameext || ''}`.trim(),
+          timeStatus: entry.timeStatus || 'N/A',
+          room: entry.room || 'N/A',
+          floor: entry.floor || 'N/A',
+          purpose: entry.purpose || 'N/A',
+          timestamp: timestamp,
+          validID: entry.validID || null,
+        });
 
             const recordDiv = document.createElement('div');
             recordDiv.className = 'record';
