@@ -166,7 +166,7 @@
       <select id="userTypeFilter">
         <option value="all">All Users</option>
         <option value="training">Training</option>
-        <option value="student">Student</option>
+        <option value="assessment">Assessment</option>
       </select>
 
       <select id="timeStatusFilter">
@@ -246,7 +246,7 @@
 
     await Promise.all([
       remove(ref(dbInstance, 'student')),
-      remove(ref(dbInstance, 'training'))
+      remove(ref(dbInstance, 'assessment'))
     ]);
 
     alert('All student and training records have been deleted.');
@@ -306,7 +306,7 @@
       const selectedDate = dateFilter.value;
       const selectedFloor = floorFilter.value;
 
-      const types = ['student', 'training'];
+      const types = ['assessment', 'training'];
       const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
 
       for (const type of fetchTypes) {
