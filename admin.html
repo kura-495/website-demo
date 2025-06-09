@@ -337,10 +337,10 @@ downloadPdfBtn.addEventListener('click', () => {
     dateFilter.addEventListener('change', fetchData);
     floorFilter.addEventListener('change', fetchData);
 
-    let filteredRecords = [];
+    
     async function fetchData() {
+      let filteredRecords = [];
       recordsContainer.innerHTML = '';
-      filteredRecords = [];
       const selectedUser = userTypeFilter.value;
       const selectedStatus = timeStatusFilter.value;
       const selectedDate = dateFilter.value;
