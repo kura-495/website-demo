@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clear Records</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e0f7ff;
+      padding: 20px;
+      color: #0077b6;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .btn {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0096c7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 250px;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #005f80;
+    }
+    .btn:disabled {
+      background-color: #a1c4d8;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clear Records</h1>
+  <button class="btn" id="clearAllBtn">🧹 Clear All Records</button>
+  <div id="buttonsContainer"></div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import {
+      ref,
+      get,
+      remove,
+      child,
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const buttonsContainer = document.getElementById("buttonsContainer");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+
+    async function getAdminPassword() {
+      const snapshot = await get(ref(db, 'accounts/admin/p_word'));
+      return snapshot.exists() ? snapshot.val() : null;
+    }
+
+    async function loadTreeKeys() {
+      const snapshot = await get(ref(db));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.keys(data).filter(key => key !== "accounts");
+      }
+      return [];
+    }
+
+    async function confirmAndDelete(path) {
+      const input = prompt(`Enter admin password to delete "${path}"`);
+      const adminPassword = await getAdminPassword();
+      if (input === adminPassword) {
+        await remove(ref(db, path));
+        alert(`"${path}" records cleared.`);
+      } else {
+        alert("Incorrect password. Deletion aborted.");
+      }
+    }
+
+    async function setup() {
+      const keys = await loadTreeKeys();
+
+      // Create Clear All button handler
+      clearAllBtn.onclick = async () => {
+        const input = prompt("Enter admin password to delete ALL records");
+        const adminPassword = await getAdminPassword();
+        if (input === adminPassword) {
+          const deletePromises = keys.map(key => remove(ref(db, key)));
+          await Promise.all(deletePromises);
+          alert("All records cleared.");
+        } else {
+          alert("Incorrect password. Deletion aborted.");
+        }
+      };
+
+      // Create individual buttons
+      keys.forEach(key => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.textContent = `Clear "${key}" Records`;
+        btn.onclick = () => confirmAndDelete(key);
+        buttonsContainer.appendChild(btn);
+      });
+    }
+
+    setup();
+  </script>
+</body>
+</html>
