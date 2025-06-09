@@ -155,6 +155,7 @@
       <div id="settingsDropdown" class="settings-dropdown hidden">
         <div id="changePassword">Change Credentials</div>
         <div id="generateCode">Generate Code</div>
+        <div id="clearRecords">Clear Records</div>
         <div id="logout">Log out</div>
       </div>
     </div>
@@ -209,6 +210,7 @@
 
     const changePasswordBtn = document.getElementById('changePassword');
     const generateCodeBtn = document.getElementById('generateCode');
+    const clearRecordsBtn = document.getElementById('clearRecords');
     const logoutBtn = document.getElementById('logout');
 
     showPasswordButton.addEventListener('click', () => {
@@ -233,6 +235,10 @@
 
     generateCodeBtn.addEventListener('click', () => {
       window.location.href = 'generatecode.html';
+    });
+
+    clearRecordsBtn.addEventListener('click', () => {
+      window.location.href = 'clearrecords.html';
     });
 
     logoutBtn.addEventListener('click', () => {
