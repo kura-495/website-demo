@@ -70,21 +70,27 @@
     const statusDiv = document.getElementById("status");
 
     async function fetchTopLevelNodes() {
-      statusDiv.textContent = "Loading database nodes...";
-      try {
-        const dbRef = ref(db);
-        const snapshot = await get(dbRef);
-        if (!snapshot.exists()) {
-          statusDiv.textContent = "Database is empty.";
-          return [];
-        }
-        const data = snapshot.val();
-        return Object.keys(data).filter(key => key !== "accounts");
-      } catch (err) {
-        statusDiv.textContent = "Error loading database: " + err.message;
-        return [];
-      }
+  try {
+    const snapshot = await get(ref(rtdb)); // top-level ref
+    console.log("Full database snapshot:", snapshot.val());
+
+    if (!snapshot.exists()) {
+      console.warn("Snapshot does not exist — no data found.");
+      return [];
     }
+
+    const allKeys = Object.keys(snapshot.val());
+    console.log("All top-level keys:", allKeys);
+
+    const filteredKeys = allKeys.filter(k => k !== "accounts");
+    console.log("Filtered (excluding 'accounts'):", filteredKeys);
+
+    return filteredKeys;
+  } catch (error) {
+    console.error("Error fetching top-level nodes:", error);
+    return [];
+  }
+}
 
     async function getAdminPassword() {
       try {
