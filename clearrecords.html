@@ -43,13 +43,13 @@
   <div id="buttonsContainer"></div>
 
   <script type="module">
-    import { db } from './firebase-config.js';
+    import { rtdb } from './firebase-config.js'; // this must match the export
     import {
-      ref,
-      get,
-      remove,
-      child,
+    ref,
+    get,
+    remove
     } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
 
     const buttonsContainer = document.getElementById("buttonsContainer");
     const clearAllBtn = document.getElementById("clearAllBtn");
