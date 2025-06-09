@@ -8,7 +8,8 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <script type="module" src="firebase-config.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
     body {
       font-family: Arial, sans-serif;
@@ -155,6 +156,7 @@
       <div id="settingsDropdown" class="settings-dropdown hidden">
         <div id="changePassword">Change Credentials</div>
         <div id="generateCode">Generate Code</div>
+        <div id="downloadPdf">Download PDF</div>
         <div id="clearRecords">Clear Records</div>
         <div id="logout">Log out</div>
       </div>
@@ -237,8 +239,44 @@
       window.location.href = 'generatecode.html';
     });
 
+    const downloadPdfBtn = document.getElementById('downloadPdf');
+
+downloadPdfBtn.addEventListener('click', () => {
+  if (displayedData.length === 0) {
+    alert('No records to download.');
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const tableHeaders = ['Name', 'Email', 'Date', 'Time Status', 'Purpose', 'Room', 'Floor'];
+  const tableData = displayedData.map(item => [
+    item.fullName || '',
+    item.email || '',
+    item.date || '',
+    item.timeStatus || '',
+    item.purpose || '',
+    item.room || '',
+    item.floor || ''
+  ]);
+
+  doc.text('Displayed Records', 14, 15);
+  doc.autoTable({
+    head: [tableHeaders],
+    body: tableData,
+    startY: 20,
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [100, 150, 255] }
+  });
+
+  doc.save('Displayed_Records.pdf');
+
+  // Close dropdown after clicking
+  settingsDropdown.classList.add('hidden');
+});
     clearRecordsBtn.addEventListener('click', async () => {
-  const confirmed = confirm("Are you sure you want to delete all student and training records? This action cannot be undone.");
+  const confirmed = confirm("Are you sure you want to delete all assesment and training records? This action cannot be undone.");
   if (!confirmed) return;
 
   try {
@@ -299,8 +337,10 @@
     dateFilter.addEventListener('change', fetchData);
     floorFilter.addEventListener('change', fetchData);
 
+    let displayedData = [];
     async function fetchData() {
       recordsContainer.innerHTML = '';
+      displayedData = filteredData;
       const selectedUser = userTypeFilter.value;
       const selectedStatus = timeStatusFilter.value;
       const selectedDate = dateFilter.value;
