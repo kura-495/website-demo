@@ -337,8 +337,10 @@ downloadPdfBtn.addEventListener('click', () => {
     dateFilter.addEventListener('change', fetchData);
     floorFilter.addEventListener('change', fetchData);
 
+    let filteredRecords = [];
     async function fetchData() {
       recordsContainer.innerHTML = '';
+      filteredRecords = [];
       const selectedUser = userTypeFilter.value;
       const selectedStatus = timeStatusFilter.value;
       const selectedDate = dateFilter.value;
@@ -346,7 +348,6 @@ downloadPdfBtn.addEventListener('click', () => {
 
       const types = ['assessment', 'training'];
       const fetchTypes = selectedUser === 'all' ? types : [selectedUser];
-      const filteredRecords = [];
       for (const type of fetchTypes) {
         const dbRef = ref(getDatabase(), type);
         const snapshot = await get(dbRef);
