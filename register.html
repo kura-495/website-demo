@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Registration</title>
+  <title>1</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -164,6 +164,24 @@
     import { app, db } from "./firebase-config.js";
     import { getDatabase, ref, push, getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
+const scannedCode = localStorage.getItem("scannedCode");
+async function verifyRoomCode() {
+  if (!scannedCode) {
+    // No code stored, redirect
+    window.location.href = "index.html";
+    return;
+  }
+
+  const roomsSnapshot = await getDocs(collection(db, "rooms"));
+  let matchFound = false;
+
+  roomsSnapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.code === scannedCode) {
+      matchFound = true;
+    }
+  });
+
     // Show room info
     const roomName = localStorage.getItem("scannedRoom");
     const floorName = localStorage.getItem("scannedFloor");
@@ -259,25 +277,6 @@
       viewFileBtn.style.display = "none";
       fileBase64 = "";
     });
-
-const scannedCode = localStorage.getItem("scannedCode");
-
-async function verifyRoomCode() {
-  if (!scannedCode) {
-    // No code stored, redirect
-    window.location.href = "index.html";
-    return;
-  }
-
-  const roomsSnapshot = await getDocs(collection(db, "rooms"));
-  let matchFound = false;
-
-  roomsSnapshot.forEach(doc => {
-    const data = doc.data();
-    if (data.code === scannedCode) {
-      matchFound = true;
-    }
-  });
   </script>
 </body>
 </html>
